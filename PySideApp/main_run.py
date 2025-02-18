@@ -6,7 +6,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings
 from PySide6.QtGui import QPixmap, QIcon, Qt
 from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
-    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy
+    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget
 from qasync import QEventLoop
 
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single
@@ -65,18 +65,26 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         # self.toolButton_expand_area_common.pressed.connect(self.area_common_expand)
 
     def init_func_box(self):
-        self.verticalLayout_func_box = QVBoxLayout(self.tab_new_task)
+        # 搜索框
+        verticalLayout_func_box = QVBoxLayout(self.tab_new_task)
         self.lineEdit_func_box = QLineEdit(self.tab_new_task)
         self.lineEdit_func_box.setPlaceholderText('键入以搜索...')
-        self.verticalLayout_func_box.addWidget(self.lineEdit_func_box)
-
-        self.block_button, self.flow_widget = add_func_block_single(self.tab_new_task, self.verticalLayout_func_box, 'GBTXXXXXX')
-        self.func_button = add_func_single(text='tesdfsgsfdgt', flow_widget=self.flow_widget)
-
+        verticalLayout_func_box.addWidget(self.lineEdit_func_box)
+        # 主滚动背景层
+        self.scrollArea_main_func_box = QScrollArea(self.tab_new_task)
+        self.scrollArea_main_func_box.setWidgetResizable(True)
+        scrollAreaWidgetContents = QWidget()
+        self.scrollArea_main_func_box.setWidget(scrollAreaWidgetContents)
+        verticalLayout_func_box.addWidget(self.scrollArea_main_func_box)
+        self.scrollArea_main_layout = QVBoxLayout(scrollAreaWidgetContents)
+        # 添加功能区
+        self.block_button, self.flow_widget = add_func_block_single(self.scrollArea_main_func_box, self.scrollArea_main_layout, 'GBTXXXXXX')
         self.block_button.pressed.connect(self.area_common_expand)
-        add_func_block_single(self.tab_new_task, self.verticalLayout_func_box, 'GBTfghjfhgj')
-        self.verticalLayout_func_box.addItem(
-            QSpacerItem(20, 152, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        # 添加功能
+        self.func_button = add_func_single(text='tesdfsgsfdgt', flow_widget=self.flow_widget)
+        # 添加spacer防止布局异常
+        self.scrollArea_main_layout.addItem(
+            QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
 
 

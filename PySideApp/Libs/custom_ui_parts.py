@@ -92,12 +92,8 @@ def add_func_single(text: str, flow_widget:FlowWidget, icon=None, ):
     return toolButton
 
 
-def add_func_block_single(tab_page:QWidget, layout:QVBoxLayout|QHBoxLayout, text:str):
-    scrollArea = QScrollArea(tab_page)
-    scrollArea.setWidgetResizable(True)
-    scrollAreaWidgetContents = QWidget()
-    verticalLayout_3 = QVBoxLayout(scrollAreaWidgetContents)
-    toolButton_expand = QToolButton(scrollAreaWidgetContents)
+def add_func_block_single(area:QScrollArea, layout:QVBoxLayout|QHBoxLayout, text:str):
+    toolButton_expand = QToolButton(area)
     toolButton_expand.setText(text)
     sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
     sizePolicy.setHorizontalStretch(0)
@@ -109,9 +105,8 @@ def add_func_block_single(tab_page:QWidget, layout:QVBoxLayout|QHBoxLayout, text
     toolButton_expand.setChecked(True)
     toolButton_expand.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
     toolButton_expand.setArrowType(Qt.ArrowType.DownArrow)
-    verticalLayout_3.addWidget(toolButton_expand)
-    flow_widget = FlowWidget(scrollAreaWidgetContents)
-    verticalLayout_3.addWidget(flow_widget)
-    scrollArea.setWidget(scrollAreaWidgetContents)
-    layout.addWidget(scrollArea)
+    layout.addWidget(toolButton_expand)
+    flow_widget = FlowWidget(area)
+    layout.addWidget(flow_widget)
+
     return toolButton_expand, flow_widget
