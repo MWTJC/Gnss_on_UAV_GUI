@@ -1,0 +1,6 @@
+<RCC>
+    <qresource>
+        <file>..\img\splash.jpg</file>
+        <file>..\ico\app_icon.ico</file>
+    </qresource>
+</RCC>

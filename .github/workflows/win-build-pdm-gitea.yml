@@ -1,0 +1,88 @@
+defaults:
+  run:
+    shell: powershell
+
+name: gitea-CI-sparrow-poetry
+on:
+  push:
+    tags:
+      - "*w*"
+
+
+jobs:
+  poetry-src-regen:
+    runs-on: windows-amd64
+    env:
+      PYTHONIOENCODING: 'utf-8'
+      PYTHONUTF8: 1
+      GITEA_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      ACTIONS_URL: https://mwtjc.online:14086/
+      GITEA_API_URL: https://mwtjc.online:14086/api/v1/
+      APP_FOLDER_NAME: 'PySideApp'
+    steps:
+      - name: 检出repo
+        uses: ${{ env.ACTIONS_URL }}actions/checkout@v4
+
+      - name: 取得hash标记符
+        uses: ${{ env.ACTIONS_URL }}actions/go-hashfiles@v0.0.1
+        id: hash-go
+        with:
+          patterns: |-
+            py312-win.lock
+            pyproject.toml
+
+      - name: 环境安装
+        run: |
+          pdm use 3.12
+          pdm install --lockfile=py312-win.lock
+          pdm list
+          pdm info
+
+      - name: 资源更新
+        working-directory: ${{ env.APP_FOLDER_NAME }}\scripts
+        run: pdm run regen_ui.py
+
+      - name: 构建前测试
+        run: pdm run test
+
+      - name: 取得缓存 nuitka
+        uses: ${{ env.ACTIONS_URL }}actions/cache/restore@v4
+        with:
+          path: |
+            .\dist
+          key: dist-${{ steps.hash-go.outputs.hash }}
+
+      - name: Nuitka构建-本地-单文件
+        run: pdm run build
+
+      - name: 缓存 nuitka
+        uses: ${{ env.ACTIONS_URL }}actions/cache/save@v4
+        with:
+          path: |
+            .\dist
+          key: dist-${{ steps.hash-go.outputs.hash }}
+
+      - name: 获取 commit 哈希
+        id: commit_hash
+        run: |
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> "$GITEA_ENV"
+
+      - name: 获取构建时间
+        id: build_time
+        run: |
+          echo "BUILD_TIME=$((Get-Date).ToString('yyyyMMddHHmmss'))" >> "$GITEA_ENV"
+
+      - name: 上传CI成品
+        uses: ${{ env.ACTIONS_URL }}actions/upload-artifact@v3
+        with:
+          name: win64_dist_${{ env.COMMIT_HASH }}_${{ env.BUILD_TIME }}
+          path: |
+            .\dist\${{ env.APP_FOLDER_NAME }}.dist
+          if-no-files-found: error
+          compression-level: 9
+          overwrite: true
+          retention-days: 5
+
+      - name: SHA-256
+        run: echo 'SHA-256 ${{ steps.artifact-upload-step.outputs.artifact-digest }}'
+
