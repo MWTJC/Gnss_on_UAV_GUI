@@ -3,22 +3,25 @@ import os
 import sys
 import time
 
-from PySide6.QtCore import Signal
+from PySide6 import QtCore
+from PySide6.QtCore import Signal, QSettings
 from PySide6.QtGui import QPixmap, QIcon, Qt
-from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox
+from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView
 from qasync import QEventLoop, asyncSlot
 
-sys.path.append('PySideApp/pyui')
+from PySideApp.Libs.settings_window import SettingsManager
+
+sys.path.append('./pyui')
 for _ in sys.path:
     print(_)
-from PySideApp.pyui import MyUI
+from PySideApp.pyui import MainWindowUI
 
 os.environ["QT_API"] = "PySide6"
 iconpath = ":/ico/app_icon.ico"
 splashpath = ":/img/splash.jpg"
 
 
-class MySplashScreen(QSplashScreen):
+class SplashScreen(QSplashScreen):
     def __init__(self):
         super().__init__()
         self.setPixmap(QPixmap(splashpath))  # 设置背景图片
@@ -34,53 +37,82 @@ class MySplashScreen(QSplashScreen):
         self.deleteLater()
 
 
-class MyWindow(QMainWindow, MyUI.Ui_MainWindow):  # 手搓函数，实现具体功能
+class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实现具体功能
     func_a_ok_signal = Signal()
 
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.loop = asyncio.get_event_loop()  # 异步loop取得
+        self.init_main_parts()
         self.bind_func()
-        self.bind_signal()
+        # self.bind_signal()
+
+    def init_main_parts(self):  # 目前无法异步，因为涉及类的初始化，使用异步需要大改
+        # 初始化设置管理器
+        self.init_settings_manager()
+        # 初始化组件细节
+        self.init_table_widget()
+        self.init_func_list()
 
     def bind_func(self):
         """
         绑定ui组件到具体函数
         :return:
         """
-        self.pushButton_func_b.clicked.connect(self.func_b)
+        self.actionSettings.triggered.connect(self.open_settings_dialog)
+        self.toolButton_expand_area_common.pressed.connect(self.area_common_expand)
+
+    def init_func_list(self):
+        self.toolButton_f1 = QToolButton(self.scrollAreaWidgetContents_4)
+        self.toolButton_f1.setObjectName(u"toolButton_f1")
+        icon6 = QIcon(QIcon.fromTheme(u"folder"))
+        self.toolButton_f1.setIcon(icon6)
+        self.toolButton_f1.setIconSize(QSize(32, 32))
+        self.toolButton_f1.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+
+    def area_common_expand(self):
+        checked = self.toolButton_expand_area_common.isChecked()
+
+        self.toolButton_expand_area_common.setArrowType(
+            QtCore.Qt.ArrowType.DownArrow if not checked else QtCore.Qt.ArrowType.RightArrow
+        )
+        self.scrollArea_common.setVisible(not checked)
 
     def bind_signal(self):
         self.func_a_ok_signal.connect(self.func_a_ok)
 
-    def func_a(self, count_time: int):
-        """
-        自定义函数a
-        """
-        self.pushButton_func_b.setDisabled(True)
-        for i in range(count_time):
-            self.label.setText(f"{i + 1}")
-            time.sleep(1)
-        self.label.setText("执行完毕")
-        self.pushButton_func_b.setEnabled(True)
-        self.func_a_ok_signal.emit()
+    def init_table_widget(self):
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
-    def func_a_ok(self):
-        """在主线程中显示消息框"""
-        QMessageBox.information(self, '提示', "执行完毕...", QMessageBox.StandardButton.Ok)
+    def init_settings_manager(self):
+        # 定义需要保存状态的部件
+        self.state_save_list = [self.tabWidget, self]
+        # 主题色变量
+        self.theme = '跟随系统'
+        self.settings_manager = SettingsManager(self.apply_settings)
 
-    @asyncSlot()
-    async def func_b(self):
-        """
-        自定义异步函数
-        :return:
-        """
-        await self.loop.run_in_executor(
-            None,  # 主线程
-            self.func_a,  # 函数名
-            5,  # 输入参数
-        )
+    def apply_settings(self, settings: dict):
+        if 'Theme' in settings:
+            self.theme = settings['Theme']
+            self.apply_theme()
+
+    def open_settings_dialog(self):
+        settings_ditc = {
+            'Theme': self.theme
+        }
+        self.settings_manager.get_settings(settings_ditc)
+        self.settings_manager.tabWidget_settings_main.setCurrentIndex(0)
+        self.settings_manager.show()
+
+    def apply_theme(self):
+        if self.theme == '跟随系统':
+            QApplication.styleHints().setColorScheme(Qt.ColorScheme.Unknown)
+        elif self.theme == '深色':
+            QApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark)
+        elif self.theme == '浅色':
+            QApplication.styleHints().setColorScheme(Qt.ColorScheme.Light)
+        self.update()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, "询问", '确认关闭？',
@@ -92,15 +124,40 @@ class MyWindow(QMainWindow, MyUI.Ui_MainWindow):  # 手搓函数，实现具体�
         self.loop.stop()
         event.accept()
 
+    def saveSettings(self):
+        settings = QSettings("settings.ini", QSettings.Format.IniFormat)
+        # 主题色
+        settings.setValue('Theme', self.theme)
+        # 布局
+        for item in self.state_save_list:
+            if isinstance(item, QMainWindow):
+                settings.setValue(f'{item.objectName()}Geometry', item.saveGeometry())
+                settings.setValue(f'{item.objectName()}State', item.saveState())
+            elif isinstance(item, QTabWidget):
+                settings.setValue(f'{item.objectName()}TabIndex', item.currentIndex())
+
+    def loadSettings(self):
+        settings = QSettings("settings.ini", QSettings.Format.IniFormat)
+        # 主题色
+        self.theme = settings.value('Theme', '跟随系统')
+        self.apply_theme()
+        # 布局
+        for item in self.state_save_list:
+            if isinstance(item, QMainWindow):
+                self.restoreGeometry(settings.value(f'{item.objectName()}Geometry'))
+                self.restoreState(settings.value(f'{item.objectName()}State'))
+            if isinstance(item, QTabWidget):
+                item.setCurrentIndex(settings.value(f'{item.objectName()}TabIndex', 0, int))
+
 
 def main():
     app = QApplication(sys.argv)  # 实例化，传参
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)  # 全局异步能力
-    splash = MySplashScreen()
+    splash = SplashScreen()
     app.processEvents()  # 处理主进程事件
     # 主窗口
-    window = MyWindow()
+    window = MainWindow()
     window.setWindowIcon(QIcon(iconpath))
     window.show()
     splash.ok(window)
