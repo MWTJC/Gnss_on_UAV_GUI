@@ -1,14 +1,15 @@
 import asyncio
 import os
 import sys
-import time
 
 from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings
 from PySide6.QtGui import QPixmap, QIcon, Qt
-from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView
-from qasync import QEventLoop, asyncSlot
+from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
+    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy
+from qasync import QEventLoop
 
+from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single
 from PySideApp.Libs.settings_window import SettingsManager
 
 sys.path.append('./pyui')
@@ -53,7 +54,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.init_settings_manager()
         # 初始化组件细节
         self.init_table_widget()
-        self.init_func_list()
+        self.init_func_box()
 
     def bind_func(self):
         """
@@ -61,23 +62,31 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         :return:
         """
         self.actionSettings.triggered.connect(self.open_settings_dialog)
-        self.toolButton_expand_area_common.pressed.connect(self.area_common_expand)
+        # self.toolButton_expand_area_common.pressed.connect(self.area_common_expand)
 
-    def init_func_list(self):
-        self.toolButton_f1 = QToolButton(self.scrollAreaWidgetContents_4)
-        self.toolButton_f1.setObjectName(u"toolButton_f1")
-        icon6 = QIcon(QIcon.fromTheme(u"folder"))
-        self.toolButton_f1.setIcon(icon6)
-        self.toolButton_f1.setIconSize(QSize(32, 32))
-        self.toolButton_f1.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+    def init_func_box(self):
+        self.verticalLayout_func_box = QVBoxLayout(self.tab_new_task)
+        self.lineEdit_func_box = QLineEdit(self.tab_new_task)
+        self.lineEdit_func_box.setPlaceholderText('键入以搜索...')
+        self.verticalLayout_func_box.addWidget(self.lineEdit_func_box)
+
+        self.block_button, self.flow_widget = add_func_block_single(self.tab_new_task, self.verticalLayout_func_box, 'GBTXXXXXX')
+        self.func_button = add_func_single(text='tesdfsgsfdgt', flow_widget=self.flow_widget)
+
+        self.block_button.pressed.connect(self.area_common_expand)
+        add_func_block_single(self.tab_new_task, self.verticalLayout_func_box, 'GBTfghjfhgj')
+        self.verticalLayout_func_box.addItem(
+            QSpacerItem(20, 152, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        )
+
 
     def area_common_expand(self):
-        checked = self.toolButton_expand_area_common.isChecked()
+        checked = self.block_button.isChecked()
 
-        self.toolButton_expand_area_common.setArrowType(
+        self.block_button.setArrowType(
             QtCore.Qt.ArrowType.DownArrow if not checked else QtCore.Qt.ArrowType.RightArrow
         )
-        self.scrollArea_common.setVisible(not checked)
+        self.flow_widget.setVisible(not checked)
 
     def bind_signal(self):
         self.func_a_ok_signal.connect(self.func_a_ok)
