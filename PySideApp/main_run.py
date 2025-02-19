@@ -76,7 +76,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         single_raw_data = (result.id, result.name, result.note, '未计算', QPushButton())
         for col, value in enumerate(single_raw_data):
             item = QTableWidgetItem('value')
-            self.tableWidget.setCellWidget(1, col, item)
+            # self.tableWidget.setCellWidget(1, col, item)
         pass
 
     def bind_func(self):
