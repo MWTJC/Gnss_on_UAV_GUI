@@ -1,6 +1,8 @@
 import asyncio
 import os
 import sys
+import locale
+locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 
 from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings
@@ -87,9 +89,13 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def add_func_to_box(self):
         test_module_list = get_all_test()
+        # 先根据名称排序
+        test_module_list = sorted(test_module_list, key=lambda x: locale.strxfrm(x.name))
+        # 统计有哪几类
         type_list = []
         for test_module in test_module_list:
             type_list.append(test_module.test_type)
+        # 对类型排序
         type_list_set = set(type_list)
         type_list = sorted(type_list_set, key=type_list.index)
         for single_type in type_list:
