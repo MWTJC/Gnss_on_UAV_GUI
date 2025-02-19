@@ -99,26 +99,21 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
                 self.scrollArea_main_layout,
                 single_type,
             )
-            self.bind_expand_button(block_button, flow_widget)  # todo 如何动态绑定
-            block_button.pressed.connect(self.area_common_expand)
+            self.bind_expand_button(block_button, flow_widget)
             for test_module in test_module_list:
                 if test_module.test_type in single_type:
                     # todo 添加功能并绑定
                     func_button = add_func_single(text=test_module.name, flow_widget=flow_widget)
 
     def bind_expand_button(self, button, flow_widget):
-        self.button_need_bind = button
-        self.flow_widget_need_bind = flow_widget
-        button.pressed.connect(self.area_common_expand)
-        self.button_need_bind = None
-        self.flow_widget_need_bind = None
+        def expand_handler():
+            checked = button.isChecked()
+            button.setArrowType(
+                QtCore.Qt.ArrowType.DownArrow if not checked else QtCore.Qt.ArrowType.RightArrow
+            )
+            flow_widget.setVisible(not checked)
+        button.pressed.connect(expand_handler)
 
-    def area_common_expand(self):
-        checked = self.button_need_bind.isChecked()
-        self.button_need_bind.setArrowType(
-            QtCore.Qt.ArrowType.DownArrow if not checked else QtCore.Qt.ArrowType.RightArrow
-        )
-        self.flow_widget_need_bind.setVisible(not checked)
 
     def bind_signal(self):
         self.func_a_ok_signal.connect(self.func_a_ok)
