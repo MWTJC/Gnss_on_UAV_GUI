@@ -15,7 +15,7 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
     QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget
 from qasync import QEventLoop
 
-from PySideApp.Libs.calculation_lib import get_all_test
+from PySideApp.Libs.calculation_lib import get_all_test, TestModule
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single
 from PySideApp.Libs.settings_window import SettingsManager
 
@@ -120,7 +120,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
                 if test_module.test_type in single_type:
                     # todo 添加功能并绑定
                     func_button = add_func_single(text=test_module.name, flow_widget=flow_widget)
-                    self.bind_test_button(func_button, test_module.name)
+                    self.bind_test_button(func_button, test_module)
 
     def bind_expand_button(self, button, flow_widget):
         def expand_handler():
@@ -131,10 +131,10 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             flow_widget.setVisible(not checked)
         button.pressed.connect(expand_handler)
 
-    def bind_test_button(self, button, test_name:str):
+    def bind_test_button(self, button, test_module:TestModule):
         def click_handler():
             uuid = int(time.strftime('%Y%m%d%H%M%S', time.localtime(time.time())))
-            self.test_runner.set_test_info(uuid, test_name)
+            self.test_runner.set_test_info(uuid, test_module)
             self.test_runner.show()
         button.clicked.connect(click_handler)
 
