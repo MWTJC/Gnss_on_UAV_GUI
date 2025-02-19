@@ -21,7 +21,7 @@ class GBT2038058_2019_6_4_5(TestModule):
             name='6.4.5 最大爬升速率',
             search_keywords=['2038058', '爬升速率', '爬升速度', '爬升', '爬升率', '645'],
         )
-    def init_test_task(self, uuid:int):
+    def init_test_task(self, uuid:int, note:str|None=None):
         input_list_demo = [
             TestParamInput('爬升率 大于', 5.0, 'm/s')
         ]
@@ -42,6 +42,7 @@ class GBT2038058_2019_6_4_5(TestModule):
             task_name=self.name,
             input_param_list=input_list_demo,
             step_list=step_list_demo,
+            note=note,
         )
         self.test_task = task
 
@@ -68,7 +69,7 @@ class GBT2038058_2019_6_4_2(TestModule):
             name='6.4.2 最大作业半径',
             search_keywords=['2038058', '作业半径', '642'],
         )
-    def init_test_task(self, uuid:int):
+    def init_test_task(self, uuid:int, note:str|None=None):
         input_list_demo = [
             TestParamInput('半径 大于', 20.0, 'm')
         ]
@@ -93,6 +94,7 @@ class GBT2038058_2019_6_4_2(TestModule):
             task_name=self.name,
             input_param_list=input_list_demo,
             step_list=step_list_demo,
+            note=note,
         )
         self.test_task = task
 
@@ -119,7 +121,7 @@ class NormalTestMaxHeight(TestModule):
             name='最大飞行高度',
             search_keywords=['高度', '高'],
         )
-    def init_test_task(self, uuid:int):
+    def init_test_task(self, uuid:int, note:str|None=None):
         input_list_demo = [
             TestParamInput('高度 大于', 50.0, 'm')
         ]
@@ -133,6 +135,7 @@ class NormalTestMaxHeight(TestModule):
             task_name=self.name,
             input_param_list=input_list_demo,
             step_list=step_list_demo,
+            note=note,
         )
         self.test_task = task
 

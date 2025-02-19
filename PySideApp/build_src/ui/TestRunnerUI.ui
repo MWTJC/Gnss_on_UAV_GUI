@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>395</width>
-    <height>407</height>
+    <width>401</width>
+    <height>423</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>测试任务执行器</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -84,6 +84,30 @@ li.checked::marker { content: &quot;\2612&quot;; }
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_start_test">
+           <property name="text">
+            <string>开始测试</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
@@ -261,7 +285,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
           </font>
          </property>
          <property name="text">
-          <string>√测试完成，时间轴数据已保存至历史任务页，请前往以导入数据进行计算...</string>
+          <string>√测试完成，时间轴数据已保存，请关闭此页并前往历史任务页以导入数据进行计算...</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -271,37 +295,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
       </layout>
      </widget>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="text">
-        <string>上一页</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>下一页</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
   </layout>
  </widget>

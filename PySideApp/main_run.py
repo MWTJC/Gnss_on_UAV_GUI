@@ -12,7 +12,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings
 from PySide6.QtGui import QPixmap, QIcon, Qt
 from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
-    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget
+    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QPushButton, QTableWidgetItem
 from qasync import QEventLoop
 
 from PySideApp.Libs.calculation_lib import get_all_test, TestModule
@@ -68,6 +68,16 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def init_test_runner(self):
         self.test_runner = TestRunner()
+        self.test_runner.signal_test_over.connect(self.read_result_from_runner)
+
+    def read_result_from_runner(self):
+        result = self.test_runner.get_task_result()
+        self.tableWidget.clear()
+        single_raw_data = (result.id, result.name, result.note, '未计算', QPushButton())
+        for col, value in enumerate(single_raw_data):
+            item = QTableWidgetItem('value')
+            self.tableWidget.setCellWidget(1, col, item)
+        pass
 
     def bind_func(self):
         """

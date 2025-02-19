@@ -29,6 +29,7 @@ class TestTask:
             step_list: list[TestStep],
             task_name='未定义的检测项目',
             icon=None,
+            note: str | None = None
     ):
         self.id = uuid
         self.name = task_name
@@ -36,16 +37,26 @@ class TestTask:
         self.input_param_list = input_param_list
         self.step_list = step_list
         self.org_dataframe: pd.DataFrame|None = None
-
+        self.note = note
         self.current_step = 0
+
+    def next_step(self):
+        self.step_ctrller('next')
+
+    def redo_step(self):
+        self.step_ctrller('redo')
 
     def step_ctrller(self, order:str):
         if order in ['next']:
             self.step_list[self.current_step].set_step_timestamp_end(time.time())
             self.current_step += 1
             self.step_list[self.current_step].set_step_timestamp_start(time.time())
-            return self.step_list[self.current_step].describe
         elif order in ['redo']:
             self.step_list[self.current_step].set_step_timestamp_start(time.time())
             self.step_list[self.current_step].set_step_timestamp_end(None)
-            return True
+
+    def return_step(self):
+        if len(self.step_list) <= self.current_step+1:
+            return self.step_list[self.current_step], True
+        else:
+            return self.step_list[self.current_step], False
