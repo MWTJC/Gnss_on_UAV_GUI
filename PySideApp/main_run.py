@@ -2,6 +2,10 @@ import asyncio
 import os
 import sys
 import locale
+import time
+
+from PySideApp.Libs.test_runner import TestRunner
+
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 
 from PySide6 import QtCore
@@ -55,9 +59,15 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
     def init_main_parts(self):  # 目前无法异步，因为涉及类的初始化，使用异步需要大改
         # 初始化设置管理器
         self.init_settings_manager()
-        # 初始化组件细节
+        # 初始化表格组件
         self.init_table_widget()
+        # 初始化功能盒
         self.init_func_box()
+        # 初始化测试执行器
+        self.init_test_runner()
+
+    def init_test_runner(self):
+        self.test_runner = TestRunner()
 
     def bind_func(self):
         """
@@ -110,6 +120,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
                 if test_module.test_type in single_type:
                     # todo 添加功能并绑定
                     func_button = add_func_single(text=test_module.name, flow_widget=flow_widget)
+                    self.bind_test_button(func_button, test_module.name)
 
     def bind_expand_button(self, button, flow_widget):
         def expand_handler():
@@ -120,6 +131,12 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             flow_widget.setVisible(not checked)
         button.pressed.connect(expand_handler)
 
+    def bind_test_button(self, button, test_name:str):
+        def click_handler():
+            uuid = int(time.strftime('%Y%m%d%H%M%S', time.localtime(time.time())))
+            self.test_runner.set_test_info(uuid, test_name)
+            self.test_runner.show()
+        button.clicked.connect(click_handler)
 
     def bind_signal(self):
         self.func_a_ok_signal.connect(self.func_a_ok)

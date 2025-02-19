@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget_test_runner">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_basic_info">
       <attribute name="title">
@@ -41,7 +41,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEdit_id_2">
+           <widget class="QLineEdit" name="lineEdit_uuid">
             <property name="placeholderText">
              <string>自动生成</string>
             </property>
@@ -55,7 +55,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEdit_calculate_item_2">
+           <widget class="QLineEdit" name="lineEdit_calculate_item">
             <property name="placeholderText">
              <string>自动生成</string>
             </property>
@@ -69,7 +69,7 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QTextEdit" name="textEdit_mark_2">
+           <widget class="QTextEdit" name="textEdit_mark">
             <property name="html">
              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
@@ -159,6 +159,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
              <spacer name="verticalSpacer">
               <property name="orientation">
                <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
               </property>
              </spacer>
             </item>
