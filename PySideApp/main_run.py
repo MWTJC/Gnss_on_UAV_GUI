@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
     QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget
 from qasync import QEventLoop
 
+from PySideApp.Libs.calculation_lib import get_all_test
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single
 from PySideApp.Libs.settings_window import SettingsManager
 
@@ -77,24 +78,47 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.scrollArea_main_func_box.setWidget(scrollAreaWidgetContents)
         verticalLayout_func_box.addWidget(self.scrollArea_main_func_box)
         self.scrollArea_main_layout = QVBoxLayout(scrollAreaWidgetContents)
-        # 添加功能区
-        self.block_button, self.flow_widget = add_func_block_single(self.scrollArea_main_func_box, self.scrollArea_main_layout, 'GBTXXXXXX')
-        self.block_button.pressed.connect(self.area_common_expand)
-        # 添加功能
-        self.func_button = add_func_single(text='tesdfsgsfdgt', flow_widget=self.flow_widget)
+        # 添加哪些功能
+        self.add_func_to_box()
         # 添加spacer防止布局异常
         self.scrollArea_main_layout.addItem(
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
 
+    def add_func_to_box(self):
+        test_module_list = get_all_test()
+        type_list = []
+        for test_module in test_module_list:
+            type_list.append(test_module.test_type)
+        type_list_set = set(type_list)
+        type_list = sorted(type_list_set, key=type_list.index)
+        for single_type in type_list:
+            # 添加功能区并绑定展开折叠
+            block_button, flow_widget = add_func_block_single(
+                self.scrollArea_main_func_box,
+                self.scrollArea_main_layout,
+                single_type,
+            )
+            self.bind_expand_button(block_button, flow_widget)  # todo 如何动态绑定
+            block_button.pressed.connect(self.area_common_expand)
+            for test_module in test_module_list:
+                if test_module.test_type in single_type:
+                    # todo 添加功能并绑定
+                    func_button = add_func_single(text=test_module.name, flow_widget=flow_widget)
+
+    def bind_expand_button(self, button, flow_widget):
+        self.button_need_bind = button
+        self.flow_widget_need_bind = flow_widget
+        button.pressed.connect(self.area_common_expand)
+        self.button_need_bind = None
+        self.flow_widget_need_bind = None
 
     def area_common_expand(self):
-        checked = self.block_button.isChecked()
-
-        self.block_button.setArrowType(
+        checked = self.button_need_bind.isChecked()
+        self.button_need_bind.setArrowType(
             QtCore.Qt.ArrowType.DownArrow if not checked else QtCore.Qt.ArrowType.RightArrow
         )
-        self.flow_widget.setVisible(not checked)
+        self.flow_widget_need_bind.setVisible(not checked)
 
     def bind_signal(self):
         self.func_a_ok_signal.connect(self.func_a_ok)
