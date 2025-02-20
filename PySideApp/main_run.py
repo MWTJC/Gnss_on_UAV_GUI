@@ -126,7 +126,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             self.bind_expand_button(block_button, flow_widget)
             for test_module in test_module_list:
                 if test_module.test_type in single_type:
-                    # todo 添加功能并绑定
+                    # 添加功能并绑定
                     func_button = add_func_single(text=test_module.name, flow_widget=flow_widget)
                     self.bind_test_button(func_button, test_module)
 
@@ -134,10 +134,10 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         def expand_handler():
             checked = button.isChecked()
             button.setArrowType(
-                QtCore.Qt.ArrowType.DownArrow if not checked else QtCore.Qt.ArrowType.RightArrow
+                QtCore.Qt.ArrowType.DownArrow if checked else QtCore.Qt.ArrowType.RightArrow
             )
-            flow_widget.setVisible(not checked)
-        button.pressed.connect(expand_handler)
+            flow_widget.setVisible(checked)
+        button.clicked.connect(expand_handler)
 
     def bind_test_button(self, button, test_module:TestModule):
         def click_handler():
@@ -151,8 +151,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.refresh_fill_table_data()
 
     def refresh_fill_table_data(self):
-        self.tableWidget.clear()
-        # self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tableWidget.clear()  # 遇事不决清空
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)  # 动态拉伸
         headers = ["ID", "计算项目", "备注", "状态", "创建时间", "操作"]
         self.tableWidget.setHorizontalHeaderLabels(headers)
 
