@@ -21,18 +21,25 @@ class TestParamInput:
         self.value = param_value
         self.unit = unit
 
+    def set_value(self, new_value):
+        self.value = new_value
+
 class TestTask:
     def __init__(
             self,
             uuid: int,
             input_param_list: list[TestParamInput],
             step_list: list[TestStep],
+            task_type='未定义的检测类别',
             task_name='未定义的检测项目',
             icon=None,
-            note: str | None = None
+            note: str | None = None,
+            timestamp: float | None = None,
     ):
         self.id = uuid
+        self.create_timestamp = timestamp
         self.name = task_name
+        self.type = task_type
         self.icon = icon
         self.input_param_list = input_param_list
         self.step_list = step_list
@@ -55,7 +62,7 @@ class TestTask:
             self.step_list[self.current_step].set_step_timestamp_start(time.time())
             self.step_list[self.current_step].set_step_timestamp_end(None)
 
-    def return_step(self):
+    def get_steps(self):
         if len(self.step_list) <= self.current_step+1:
             return self.step_list[self.current_step], True
         else:
