@@ -2,7 +2,7 @@ import time
 
 from PySide6.QtCore import Signal, QTimer
 from PySide6.QtGui import QDoubleValidator
-from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox
+from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox
 
 from PySideApp.Libs.calculation_lib import TestModule, GBT2038058_2019_6_4_5
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
@@ -51,6 +51,10 @@ class TestRunner(Ui_Dialog, QDialog):
         if self.param_input_lineedit_list:
             # 存储输入参数
             for lineedit, param_class in zip(self.param_input_lineedit_list, self.test_module.get_input_list()):
+                param_value = lineedit.text()
+                if param_value in ['', None]:
+                    QMessageBox.warning(self, "警告", "请确认全部参数已输入...")
+                    return
                 param_class.set_value(lineedit.text())
 
         self.tabWidget_test_runner.setTabEnabled(0, False)
