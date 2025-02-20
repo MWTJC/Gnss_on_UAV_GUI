@@ -209,6 +209,17 @@
      <height>33</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="actionNewProj"/>
+    <addaction name="actionReadProj"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveProjAs"/>
+    <addaction name="actionSaveProject"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -250,7 +261,7 @@
    </attribute>
    <addaction name="actionNewProj"/>
    <addaction name="actionReadProj"/>
-   <addaction name="actionSaveProj"/>
+   <addaction name="actionSaveProjAs"/>
   </widget>
   <widget class="QToolBar" name="toolBar3">
    <property name="windowTitle">
@@ -486,12 +497,15 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionSaveProj">
+  <action name="actionSaveProjAs">
    <property name="icon">
-    <iconset theme="document-save-as"/>
+    <iconset theme="document-save"/>
    </property>
    <property name="text">
-    <string>保存</string>
+    <string>保存项目</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -502,7 +516,10 @@
     <iconset theme="folder-open"/>
    </property>
    <property name="text">
-    <string>打开</string>
+    <string>打开项目</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -513,7 +530,10 @@
     <iconset theme="document-new"/>
    </property>
    <property name="text">
-    <string>新建</string>
+    <string>新建项目</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -525,6 +545,17 @@
    </property>
    <property name="text">
     <string>连接串口</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSaveProject">
+   <property name="icon">
+    <iconset theme="document-save-as"/>
+   </property>
+   <property name="text">
+    <string>项目另存为</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
