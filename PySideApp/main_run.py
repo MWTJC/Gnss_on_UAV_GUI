@@ -12,7 +12,8 @@ from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings
 from PySide6.QtGui import QPixmap, QIcon, Qt
 from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
-    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QPushButton, QTableWidgetItem
+    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QPushButton, QTableWidgetItem, QHBoxLayout, \
+    QToolButton
 from qasync import QEventLoop
 
 from PySideApp.Libs.calculation_lib import get_all_test, TestModule
@@ -152,7 +153,77 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.func_a_ok_signal.connect(self.func_a_ok)
 
     def init_table_widget(self):
+        self.tableWidget.clear()
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        headers = ["ID", "计算项目", "备注", "状态", "创建时间", "操作"]
+        self.tableWidget.setHorizontalHeaderLabels(headers)
+
+        self.fill_table_data()
+
+    def fill_table_data(self):
+        # 示例数据
+        data = [
+            ["202502141029", "计算项目1", "", "未计算", "创建时间1"],
+            ["202502141030", "计算项目2", "", "未计算", "创建时间2"],
+        ]
+
+        # 设置行数
+        self.tableWidget.setRowCount(len(data))
+
+        # 填充数据
+        for row, row_data in enumerate(data):
+            for col, value in enumerate(row_data):
+                item = QTableWidgetItem(str(value))
+                self.tableWidget.setItem(row, col, item)
+
+            # 创建最后一列的按钮容器
+            widget = QWidget()
+            layout = QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+
+            # 删除按钮
+            delete_btn = QToolButton()
+            delete_btn.setText("删除")
+            delete_btn.setIcon(
+                QIcon(QIcon.fromTheme(u"user-trash"))
+            )
+            delete_btn.clicked.connect(lambda checked, r=row: self.delete_row(r))
+
+            # 详情按钮
+            detail_btn = QToolButton()
+            detail_btn.setText("详情")
+            detail_btn.setIcon(
+                QIcon(QIcon.fromTheme(u"dialog-information"))
+            )
+            detail_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
+
+            # 计算按钮
+            run_caculate_btn = QToolButton()
+            run_caculate_btn.setText("计算")
+            run_caculate_btn.setIcon(
+                QIcon(QIcon.fromTheme(u"accessories-calculator"))
+            )
+            run_caculate_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
+
+            # 将按钮添加到布局中
+            layout.addWidget(detail_btn)
+            layout.addWidget(run_caculate_btn)
+            layout.addWidget(delete_btn)
+            # spacer填充
+            layout.addItem(
+                QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+            )
+            widget.setLayout(layout)
+
+            # 将按钮容器设置到表格中
+            self.tableWidget.setCellWidget(row, 5, widget)
+
+    def delete_row(self, row):
+        print(f"删除第 {row + 1} 行")
+        self.tableWidget.removeRow(row)
+
+    def show_detail(self, row):
+        print(f"显示第 {row + 1} 行的详情")
 
     def init_settings_manager(self):
         # 定义需要保存状态的部件
