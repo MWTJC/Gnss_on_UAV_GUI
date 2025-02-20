@@ -5,6 +5,7 @@ import locale
 import time
 
 from PySideApp.Libs.test_runner import TestRunner
+from PySideApp.Libs.test_tasks_lib import TestTask
 
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 
@@ -17,7 +18,7 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
 from qasync import QEventLoop
 
 from PySideApp.Libs.calculation_lib import get_all_test, TestModule
-from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single
+from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget
 from PySideApp.Libs.settings_window import SettingsManager
 
 sys.path.append('./pyui')
@@ -73,12 +74,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def read_result_from_runner(self):
         result = self.test_runner.get_task_result()
-        self.tableWidget.clear()
-        single_raw_data = (result.id, result.name, result.note, '未计算', QPushButton())
-        for col, value in enumerate(single_raw_data):
-            item = QTableWidgetItem('value')
-            # self.tableWidget.setCellWidget(1, col, item)
-        pass
+        self.task_history_list.append(result)
+        self.refresh_fill_table_data()
 
     def bind_func(self):
         """
@@ -149,23 +146,30 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             self.test_runner.show()
         button.clicked.connect(click_handler)
 
-    def bind_signal(self):
-        self.func_a_ok_signal.connect(self.func_a_ok)
-
     def init_table_widget(self):
+        self.task_history_list:list[TestTask] = []
+        self.refresh_fill_table_data()
+
+    def refresh_fill_table_data(self):
         self.tableWidget.clear()
-        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        # self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         headers = ["ID", "计算项目", "备注", "状态", "创建时间", "操作"]
         self.tableWidget.setHorizontalHeaderLabels(headers)
 
-        self.fill_table_data()
-
-    def fill_table_data(self):
-        # 示例数据
-        data = [
-            ["202502141029", "计算项目1", "", "未计算", "创建时间1"],
-            ["202502141030", "计算项目2", "", "未计算", "创建时间2"],
-        ]
+        if len(self.task_history_list) == 0:
+            return
+        # 抽出数据
+        data = []
+        for history in self.task_history_list:
+            calculate_status = '可计算' if history.org_dataframe else '未计算'
+            single_raw = [
+                history.id,
+                f"{history.type}：{history.name}",
+                history.note,
+                calculate_status,
+                time.strftime('%Y年%m月%d日 %H:%M:%S', time.localtime(history.create_timestamp)),
+            ]
+            data.append(single_raw)
 
         # 设置行数
         self.tableWidget.setRowCount(len(data))
@@ -177,9 +181,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
                 self.tableWidget.setItem(row, col, item)
 
             # 创建最后一列的按钮容器
-            widget = QWidget()
-            layout = QHBoxLayout()
-            layout.setContentsMargins(0, 0, 0, 0)
+            widget = FlowWidget()
 
             # 删除按钮
             delete_btn = QToolButton()
@@ -206,21 +208,16 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             run_caculate_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
 
             # 将按钮添加到布局中
-            layout.addWidget(detail_btn)
-            layout.addWidget(run_caculate_btn)
-            layout.addWidget(delete_btn)
-            # spacer填充
-            layout.addItem(
-                QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-            )
-            widget.setLayout(layout)
+            widget.addWidget(detail_btn)
+            widget.addWidget(run_caculate_btn)
+            widget.addWidget(delete_btn)
 
             # 将按钮容器设置到表格中
             self.tableWidget.setCellWidget(row, 5, widget)
 
     def delete_row(self, row):
         print(f"删除第 {row + 1} 行")
-        self.tableWidget.removeRow(row)
+        # self.tableWidget.removeRow(row)
 
     def show_detail(self, row):
         print(f"显示第 {row + 1} 行的详情")
