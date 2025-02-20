@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 from abc import abstractmethod
 from PySideApp.Libs.test_tasks_lib import TestTask, TestParamInput, TestStep
@@ -30,7 +32,9 @@ class TestModule:
         """
         self.test_task = TestTask(
             uuid=uuid,
+            timestamp=time.time(),
             task_name=self.name,
+            task_type=self.test_type,
             input_param_list=self.get_input_list(),
             step_list=self.get_step_list(),
             note=note,
