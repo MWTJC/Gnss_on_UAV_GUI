@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>测试任务执行器</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="img_resource.qrc">
+    <normaloff>:/ico/app_icon.ico</normaloff>:/ico/app_icon.ico</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget_test_runner">
@@ -298,6 +302,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="img_resource.qrc"/>
+ </resources>
  <connections/>
 </ui>
