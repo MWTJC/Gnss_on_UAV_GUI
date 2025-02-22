@@ -48,12 +48,12 @@ class TestTask:
         self.current_step = 0
 
     def next_step(self):
-        self.step_ctrller('next')
+        self._step_ctrller('next')
 
     def redo_step(self):
-        self.step_ctrller('redo')
+        self._step_ctrller('redo')
 
-    def step_ctrller(self, order:str):
+    def _step_ctrller(self, order:str):
         if order in ['next']:
             self.step_list[self.current_step].set_step_timestamp_end(time.time())
             self.current_step += 1
