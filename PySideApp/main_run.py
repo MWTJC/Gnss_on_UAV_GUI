@@ -1,33 +1,37 @@
 import asyncio
 import os
+import pickle
 import sys
 import locale
 import time
+from pathlib import Path
 
-from PySideApp.Libs.test_runner import TestRunner
-from PySideApp.Libs.test_tasks_lib import TestTask
+from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile
 
+os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-web-security"
+from loguru import logger
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 
 from PySide6 import QtCore
-from PySide6.QtCore import Signal, QSettings
+from PySide6.QtCore import Signal, QSettings, QUrl
 from PySide6.QtGui import QPixmap, QIcon, Qt
 from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
-    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QPushButton, QTableWidgetItem, QHBoxLayout, \
-    QToolButton
+    QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QTableWidgetItem, \
+    QToolButton, QFileDialog
 from qasync import QEventLoop
 
+sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))
+from PySideApp.Libs.test_runner import TestRunner
+from PySideApp.Libs.test_tasks_lib import TestTask
 from PySideApp.Libs.calculation_lib import get_all_test, TestModule
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget
 from PySideApp.Libs.settings_window import SettingsManager
 
-sys.path.append('./pyui')
-for _ in sys.path:
-    print(_)
+logger.info(sys.path)
 from PySideApp.pyui import MainWindowUI
 
 os.environ["QT_API"] = "PySide6"
-iconpath = ":/ico/app_icon.ico"
 splashpath = ":/img/splash.jpg"
 
 
@@ -52,6 +56,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def __init__(self):
         super().__init__()
+        self.current_proj_path:Path|None = None
         self.setupUi(self)
         self.loop = asyncio.get_event_loop()  # 异步loop取得
         self.init_main_parts()
@@ -67,6 +72,23 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.init_func_box()
         # 初始化测试执行器
         self.init_test_runner()
+        # 初始化地图
+        self.init_map()
+
+    def init_map(self):
+        # a = Path(f"{sys.path[1]}/Libs/Leaflet_map/indexGaoDe.html")
+        a = Path(f"{sys.path[1]}/Libs/self_map/baidu.html")
+        logger.info(a)
+        # 开联网权限（坑）
+        profile = QWebEngineProfile.defaultProfile()
+        settings = profile.settings()
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+        profile.setHttpAcceptLanguage("zh-CN,zh;q=0.9")
+        profile.setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+
+        self.webEngineView_map.setUrl(QUrl.fromLocalFile(a))
 
     def init_test_runner(self):
         self.test_runner = TestRunner()
@@ -83,7 +105,62 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         :return:
         """
         self.actionSettings.triggered.connect(self.open_settings_dialog)
-        # self.toolButton_expand_area_common.pressed.connect(self.area_common_expand)
+        self.actionNewProj.triggered.connect(self.create_new_proj)
+        self.actionSaveProject.triggered.connect(self.save_proj_to_file)
+        self.actionSaveProjAs.triggered.connect(self.save_proj_to_file_as)
+        self.actionReadProj.triggered.connect(self.read_proj_from_file)
+
+    def create_new_proj(self):
+        if len(self.task_history_list) != 0:
+            reply = QMessageBox.question(self, "询问", "确认清空？",
+                                         QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No
+                                         )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+        self.task_history_list = []
+        self.refresh_fill_table_data()
+        QMessageBox.information(self, "信息", "已新建...")
+
+    def save_proj_to_file(self, save_as=False):
+        if len(self.task_history_list) == 0:
+            QMessageBox.warning(self, "警告", "无数据可保存...")
+            return
+        if self.current_proj_path is None or save_as:
+            if save_as:
+                mes = "项目另存为..."
+            else:
+                mes = "保存项目..."
+            path, ext = QFileDialog.getSaveFileName(
+                self, mes, "",
+                "cruav文件(*.cruav)"
+            )
+            if not path:  # 判断路径非空
+                logger.warning("取消保存...")
+                return
+            try:
+                self.current_proj_path = Path(path)
+            except Exception as e:
+                logger.warning(f'路径不合法:\n{path}')
+                QMessageBox.warning(self, '警告', "路径不合法")
+        with open(self.current_proj_path, 'wb') as f:
+            pickle.dump(self.task_history_list, f)
+        QMessageBox.information(self, "信息", f"已保存到：{self.current_proj_path}")
+
+    def save_proj_to_file_as(self):
+        self.save_proj_to_file(save_as=True)
+
+    def read_proj_from_file(self):
+        fname, ftype =  QFileDialog.getOpenFileName(
+            self, "打开项目...", "",
+            "cruav文件(*.cruav)",
+        )
+        if fname:
+            logger.success(fname)
+            with open(fname, 'rb') as f:
+                self.task_history_list = pickle.load(f)
+        else:
+            logger.warning('取消打开...')
+            return
 
     def init_func_box(self):
         # 搜索框
@@ -295,7 +372,6 @@ def main():
     app.processEvents()  # 处理主进程事件
     # 主窗口
     window = MainWindow()
-    window.setWindowIcon(QIcon(iconpath))
     window.show()
     splash.ok(window)
     if "--test" in sys.argv:  # 用于在构建时测试界面部分是否能正常初始化
