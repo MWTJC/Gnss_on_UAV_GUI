@@ -6,11 +6,19 @@ from PySideApp.Libs.test_tasks_lib import TestTask, TestParamInput, TestStep
 
 
 class TestModule:
-    def __init__(self, name:str, search_keywords:list[str], test_task:TestTask|None=None, test_type:str='未分类', ):
+    def __init__(
+            self,
+            name:str,
+            search_keywords:list[str],
+            test_task:TestTask|None=None,
+            test_type:str='未分类',
+            icon:str=u"folder",  # 默认使用qt内置folder标志
+    ):
         self.name = name
         self.test_type = test_type
         self.search_keywords = search_keywords
         self.test_task = test_task
+        self.icon = icon
 
     @abstractmethod
     def get_input_list(self) -> list[TestParamInput]:

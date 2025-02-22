@@ -32,7 +32,6 @@ class TestTask:
             step_list: list[TestStep],
             task_type='未定义的检测类别',
             task_name='未定义的检测项目',
-            icon=None,
             note: str | None = None,
             timestamp: float | None = None,
     ):
@@ -40,7 +39,6 @@ class TestTask:
         self.create_timestamp = timestamp
         self.name = task_name
         self.type = task_type
-        self.icon = icon
         self.input_param_list = input_param_list
         self.step_list = step_list
         self.org_dataframe: pd.DataFrame|None = None
