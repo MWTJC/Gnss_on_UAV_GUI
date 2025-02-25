@@ -45,7 +45,7 @@
 <script type="text/javascript">
 
     var map = L.map('map', {
-            center: [39.905530, 116.391305],
+            center: [29.80717, 106.52285],
             zoom: 17,
             crs: L.CRS.Baidu    
         });
@@ -54,7 +54,7 @@
     L.tileLayer.chinaProvider('Baidu.Normal.Map').addTo(map);
 
     //设置参照物
-    L.marker([39.905530,116.391305]).addTo(map).bindPopup('<p>我是WGS84坐标下，天安门广场国旗所在位置</p>').openPopup();
+    L.marker([29.80717, 106.52285]).addTo(map).bindPopup('<p>WGS84</p>').openPopup();
 
 </script>
 
