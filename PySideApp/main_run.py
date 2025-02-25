@@ -5,14 +5,7 @@ import sys
 import locale
 import time
 from pathlib import Path
-
-from PySide6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile
-
-os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-web-security"
 from loguru import logger
-locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
-
 from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings, QUrl
 from PySide6.QtGui import QPixmap, QIcon, Qt
@@ -21,18 +14,22 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
     QToolButton, QFileDialog
 from qasync import QEventLoop
 
+locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
+os.environ["QT_API"] = "PySide6"
+splashpath = ":/img/splash.jpg"
+os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-web-security"
+MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/self_map"))
 sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))
+logger.info(sys.path)
+
 from PySideApp.Libs.test_runner import TestRunner
 from PySideApp.Libs.test_tasks_lib import TestTask
 from PySideApp.Libs.calculation_lib import get_all_test, TestModule
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget
 from PySideApp.Libs.settings_window import SettingsManager
-
-logger.info(sys.path)
+from PySideApp.Libs.map_server import LocalServer
 from PySideApp.pyui import MainWindowUI
-
-os.environ["QT_API"] = "PySide6"
-splashpath = ":/img/splash.jpg"
 
 
 class SplashScreen(QSplashScreen):
@@ -76,19 +73,14 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.init_map()
 
     def init_map(self):
-        # a = Path(f"{sys.path[1]}/Libs/Leaflet_map/indexGaoDe.html")
-        a = Path(f"{sys.path[1]}/Libs/self_map/baidu.html")
-        logger.info(a)
-        # 开联网权限（坑）
-        profile = QWebEngineProfile.defaultProfile()
-        settings = profile.settings()
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
-        profile.setHttpAcceptLanguage("zh-CN,zh;q=0.9")
-        profile.setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        self.map_server = LocalServer(port=28000, dir=MAP_HTML_DIR)
+        self.pushButton_map_refresh.clicked.connect(self.webEngineView_map.reload)
+        logger.info(MAP_HTML_DIR)
+        self.map_server.start()
+        self.webEngineView_map.setUrl('http://localhost:28000/baidu.html')
 
-        self.webEngineView_map.setUrl(QUrl.fromLocalFile(a))
+    def refresh_map(self):
+        self.webEngineView_map.reload()
 
     def init_test_runner(self):
         self.test_runner = TestRunner()
