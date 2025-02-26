@@ -1,6 +1,7 @@
 <RCC>
-    <qresource>
-        <file>..\img\splash.jpg</file>
-        <file>..\ico\app_icon.ico</file>
-    </qresource>
+  <qresource>
+    <file>../img/ImageToStl.com_ruler.png</file>
+    <file>..\img\splash.jpg</file>
+    <file>..\ico\app_icon.ico</file>
+  </qresource>
 </RCC>
