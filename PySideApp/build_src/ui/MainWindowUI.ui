@@ -203,6 +203,20 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
+              <widget class="QToolButton" name="toolButton_map_ruler">
+               <property name="text">
+                <string>测距</string>
+               </property>
+               <property name="icon">
+                <iconset resource="img_resource.qrc">
+                 <normaloff>:/img/ImageToStl.com_ruler.png</normaloff>:/img/ImageToStl.com_ruler.png</iconset>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="horizontalSpacer">
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
@@ -216,9 +230,12 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_map_refresh">
+              <widget class="QToolButton" name="toolButton_map_refresh">
                <property name="text">
                 <string>刷新</string>
+               </property>
+               <property name="icon">
+                <iconset theme="view-refresh"/>
                </property>
               </widget>
              </item>
