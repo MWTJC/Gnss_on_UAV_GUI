@@ -5,6 +5,8 @@ import sys
 import locale
 import time
 from pathlib import Path
+
+from PySide6.QtWebChannel import QWebChannel
 from loguru import logger
 from PySide6 import QtCore
 from PySide6.QtCore import Signal, QSettings, QUrl
@@ -13,6 +15,8 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
     QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QTableWidgetItem, \
     QToolButton, QFileDialog
 from qasync import QEventLoop
+
+from PySideApp.Libs.map_webchannel import WebHandler
 
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 os.environ["QT_API"] = "PySide6"
@@ -74,12 +78,37 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def init_map(self):
         self.map_server = LocalServer(port=28000, dir=MAP_HTML_DIR)
-        self.pushButton_map_refresh.clicked.connect(self.webEngineView_map.reload)
+        self.toolButton_map_refresh.clicked.connect(self.webEngineView_map.reload)
         logger.info(MAP_HTML_DIR)
         self.map_server.start()
+        self.map_page = self.webEngineView_map.page()
+        self.web_channel = QWebChannel()
+        self.web_bridge = WebHandler(self.map_page)
+        self.web_bridge.ruler_end_callback = self.map_ruler_end
+        self.web_channel.registerObject("web_bridge", self.web_bridge)
+        self.map_page.setWebChannel(self.web_channel)
         self.webEngineView_map.setUrl('http://localhost:28000/baidu.html')
+        self.toolButton_map_ruler.clicked.connect(self.map_call_ruler)
+
+    def map_ruler_end(self):
+        """
+        用于从地图收作图结束信号
+        """
+        self.toolButton_map_ruler.setChecked(False)
+
+    def map_call_ruler(self):
+        """
+        召唤或者关闭尺子
+        """
+        if self.toolButton_map_ruler.isChecked():
+            self.map_page.runJavaScript("openDistance();")
+        else:
+            self.map_page.runJavaScript("closeDistance();")
 
     def refresh_map(self):
+        """
+        刷新地图
+        """
         self.webEngineView_map.reload()
 
     def init_test_runner(self):
