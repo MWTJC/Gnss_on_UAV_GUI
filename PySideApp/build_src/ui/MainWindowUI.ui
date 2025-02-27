@@ -230,6 +230,16 @@
               </spacer>
              </item>
              <item>
+              <widget class="QToolButton" name="toolButton_map_read_raw">
+               <property name="text">
+                <string>打开raw txt</string>
+               </property>
+               <property name="icon">
+                <iconset theme="document-open"/>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QToolButton" name="toolButton_map_refresh">
                <property name="text">
                 <string>刷新</string>

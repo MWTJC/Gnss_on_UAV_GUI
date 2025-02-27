@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import pickle
 import sys
@@ -17,6 +18,7 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
 from qasync import QEventLoop
 
 from PySideApp.Libs.map_webchannel import WebHandler
+from PySideApp.Libs.nmea_decode import parse_and_convert_GP
 
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 os.environ["QT_API"] = "PySide6"
@@ -89,6 +91,23 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.map_page.setWebChannel(self.web_channel)
         self.webEngineView_map.setUrl('http://localhost:28000/baidu.html')
         self.toolButton_map_ruler.clicked.connect(self.map_call_ruler)
+        self.toolButton_map_read_raw.clicked.connect(self.map_read_raw)
+
+    def map_read_raw(self):
+        fname, ftype = QFileDialog.getOpenFileName(
+            self, "打开raw数据...", "",
+            "txt文件(*.txt)",
+        )
+        if fname:
+            logger.success(fname)
+            result_list = parse_and_convert_GP(fname)
+            # 将数据转换为JSON字符串
+            data_json = json.dumps(result_list)
+            self.map_page.runJavaScript(f"setTrackData({data_json});")
+
+        else:
+            logger.warning('取消打开...')
+            return
 
     def map_ruler_end(self):
         """
@@ -179,6 +198,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             logger.success(fname)
             with open(fname, 'rb') as f:
                 self.task_history_list = pickle.load(f)
+                self.refresh_fill_table_data()
         else:
             logger.warning('取消打开...')
             return
@@ -324,7 +344,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         # 定义需要保存状态的部件
         self.state_save_list = [self.tabWidget, self]
         # 主题色变量
-        self.theme = '跟随系统'
+        self.loadSettings()
         self.settings_manager = SettingsManager(self.apply_settings)
 
     def apply_settings(self, settings: dict):
@@ -355,8 +375,9 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         if reply != QMessageBox.StandardButton.Yes:
             event.ignore()
             return
+        self.saveSettings()
         QApplication.closeAllWindows()
-        self.loop.stop()
+        # self.loop.stop()
         event.accept()
 
     def saveSettings(self):
