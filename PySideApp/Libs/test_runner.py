@@ -23,6 +23,7 @@ class TestRunner(Ui_Dialog, QDialog):
     def bind_signal(self):
         self.pushButton_start_test.clicked.connect(self.test_start)
         self.pushButton_next_step.clicked.connect(self.test_next_step)
+        self.pushButton_prev_step.clicked.connect(self.test_prev_step)
         self.pushButton_redo_step.clicked.connect(self.test_redo_step)
         self.pushButton_finish.clicked.connect(self.test_finished)
 
@@ -41,6 +42,10 @@ class TestRunner(Ui_Dialog, QDialog):
 
     def test_next_step(self):
         self.test_module.test_task.next_step()
+        self.refresh()
+
+    def test_prev_step(self):
+        self.test_module.test_task.prev_step()
         self.refresh()
 
     def test_redo_step(self):
@@ -66,12 +71,19 @@ class TestRunner(Ui_Dialog, QDialog):
         self.timer.start(333)  # 设置0.3秒刷新一次
 
     def refresh(self):
-        step_item, last_step = self.test_module.test_task.get_steps()
+        step_item, next_able, prev_able= self.test_module.test_task.get_steps()
         self.label_current_test.setText(self.test_module.name)
         self.label_step_describe.setText(step_item.describe)
-        if last_step:  # 没有下一步
+        if not next_able:  # 没有下一步
             self.pushButton_next_step.setDisabled(True)
             self.pushButton_finish.setEnabled(True)
+        else:
+            self.pushButton_next_step.setEnabled(True)
+            self.pushButton_finish.setDisabled(True)
+        if not prev_able:  # 是第一步
+            self.pushButton_prev_step.setDisabled(True)
+        else:
+            self.pushButton_prev_step.setEnabled(True)
         self.refresh_timer_label(True)  # 重新计时
 
     def reset_ui(self):

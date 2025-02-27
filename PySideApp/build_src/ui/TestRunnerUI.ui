@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget_test_runner">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_basic_info">
       <attribute name="title">
@@ -232,6 +232,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="pushButton_prev_step">
+           <property name="text">
+            <string>上一步</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QPushButton" name="pushButton_redo_step">
            <property name="text">

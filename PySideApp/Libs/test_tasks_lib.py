@@ -48,6 +48,9 @@ class TestTask:
     def next_step(self):
         self._step_ctrller('next')
 
+    def prev_step(self):
+        self._step_ctrller('prev')
+
     def redo_step(self):
         self._step_ctrller('redo')
 
@@ -56,12 +59,21 @@ class TestTask:
             self.step_list[self.current_step].set_step_timestamp_end(time.time())
             self.current_step += 1
             self.step_list[self.current_step].set_step_timestamp_start(time.time())
+        elif order in ['prev']:
+            self.step_list[self.current_step].set_step_timestamp_start(None)
+            self.step_list[self.current_step].set_step_timestamp_end(None)
+            self.current_step -= 1
+            self.step_list[self.current_step].set_step_timestamp_start(time.time())
+            self.step_list[self.current_step].set_step_timestamp_end(None)
         elif order in ['redo']:
             self.step_list[self.current_step].set_step_timestamp_start(time.time())
             self.step_list[self.current_step].set_step_timestamp_end(None)
 
     def get_steps(self):
+        prev_able = True
+        next_able = True
         if len(self.step_list) <= self.current_step+1:
-            return self.step_list[self.current_step], True
-        else:
-            return self.step_list[self.current_step], False
+            next_able = False
+        if self.current_step == 0:
+            prev_able = False
+        return self.step_list[self.current_step], next_able, prev_able
