@@ -1,15 +1,47 @@
-.distance-middle-label {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: none !important;
-    box-shadow: none !important;
+/* 测距工具样式 */
+.leaflet-distance-tooltip {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ff1919;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    z-index: 1000 !important;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.leaflet-distance-label div {
+    color: #333;
+    font-size: 12px;
     font-weight: bold;
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.leaflet-segment-label div {
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.leaflet-total-distance-label {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ff1919;
+    border-radius: 4px;
+    color: #333;
+    font-size: 12px;
     padding: 2px 6px;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
-.distance-middle-label::before {
-    display: none !important;
+.leaflet-distance-close-button {
+    z-index: 10000 !important;
 }
 
-.distance-label.leaflet-tooltip-center {
-    transform: translate(-50%, -50%);
+.leaflet-distance-close-button div {
+    z-index: 10000 !important;
 }
