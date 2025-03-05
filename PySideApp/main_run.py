@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import pickle
 import sys
@@ -25,18 +26,24 @@ os.environ["QT_API"] = "PySide6"
 splashpath = ":/img/splash.jpg"
 os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-web-security"
-MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/self_map"))
+# MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/self_map"))
+MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/vite-leaflet/dist"))
 sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))
 logger.info(sys.path)
 
 from PySideApp.Libs.test_runner import TestRunner
-from PySideApp.Libs.test_tasks_lib import TestTask
-from PySideApp.Libs.calculation_lib import get_all_test, TestModule
+from PySideApp.Libs.test_tasks_lib import TestTask, TestModule
+from PySideApp.Libs.TestModuleLib import get_all_test
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget
 from PySideApp.Libs.settings_window import SettingsManager
 from PySideApp.Libs.map_server import LocalServer
 from PySideApp.pyui import MainWindowUI
 
+def custom_excepthook(exc_type, exc_value, exc_traceback):
+    # 记录异常信息
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+    # 退出程序
+    sys.exit(1)
 
 class SplashScreen(QSplashScreen):
     def __init__(self):
@@ -59,6 +66,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def __init__(self):
         super().__init__()
+        self.error = False
         self.current_proj_path:Path|None = None
         self.setupUi(self)
         self.loop = asyncio.get_event_loop()  # 异步loop取得
@@ -89,7 +97,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.web_bridge.ruler_end_callback = self.map_ruler_end
         self.web_channel.registerObject("web_bridge", self.web_bridge)
         self.map_page.setWebChannel(self.web_channel)
-        self.webEngineView_map.setUrl('http://localhost:28000/baidu.html')
+        self.webEngineView_map.setUrl('http://localhost:28000')
         self.toolButton_map_ruler.clicked.connect(self.map_call_ruler)
         self.toolButton_map_read_raw.clicked.connect(self.map_read_raw)
 
@@ -223,8 +231,15 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
 
+    @logger.catch
     def add_func_to_box(self):
-        test_module_list = get_all_test()
+        try:
+            test_module_list = get_all_test()
+        except Exception as e:
+            logger.critical('检测模块导入不通过，退出')
+            self.error = True
+            raise
+
         # 先根据名称排序
         test_module_list = sorted(test_module_list, key=lambda x: locale.strxfrm(x.name))
         # 统计有哪几类
@@ -417,7 +432,9 @@ def main():
     window.show()
     splash.ok(window)
     if "--test" in sys.argv:  # 用于在构建时测试界面部分是否能正常初始化
-        print("startup test pass...")
+        if window.error:
+            sys.exit(1)
+        logger.success("startup test pass...")
         sys.exit()
     with loop:
         loop.run_forever()

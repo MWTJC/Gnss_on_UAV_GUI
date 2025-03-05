@@ -4,7 +4,8 @@ from PySide6.QtCore import Signal, QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox
 
-from PySideApp.Libs.calculation_lib import TestModule, GBT2038058_2019_6_4_5
+from PySideApp.Libs.TestModuleLib import GBT2038058_2019
+from PySideApp.Libs.test_tasks_lib import TestModule
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
 
@@ -101,7 +102,7 @@ class TestRunner(Ui_Dialog, QDialog):
         self.tabWidget_test_runner.setTabEnabled(1, False)
         self.tabWidget_test_runner.setTabEnabled(2, False)
 
-    def set_test_info(self, uuid:int, module:TestModule|GBT2038058_2019_6_4_5):
+    def set_test_info(self, uuid:int, module:TestModule|GBT2038058_2019.T6_4_5):
         self.test_module = module
         self.reset_ui()
         self.lineEdit_uuid.setText(str(uuid))

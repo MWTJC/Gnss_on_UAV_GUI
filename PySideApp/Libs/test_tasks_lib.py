@@ -1,4 +1,6 @@
 import time
+from abc import abstractmethod
+
 import pandas as pd
 
 
@@ -77,3 +79,69 @@ class TestTask:
         if self.current_step == 0:
             prev_able = False
         return self.step_list[self.current_step], next_able, prev_able
+
+class TestModule:
+    def __init__(
+            self,
+            name:str,
+            search_keywords:list[str],
+            test_task:TestTask|None=None,
+            test_type:str='未分类',
+            icon:str=u"folder",  # 默认使用qt内置folder标志
+    ):
+        self.name = name
+        self.test_type = test_type
+        self.search_keywords = search_keywords
+        self.test_task = test_task
+        self.icon = icon
+
+    @abstractmethod
+    def get_input_list(self) -> list[TestParamInput]:
+        """
+        定义计算输入参数
+        """
+        pass
+
+    @abstractmethod
+    def get_step_list(self) -> list[TestStep]:
+        """
+        定义检测步骤
+        """
+        pass
+
+    def init_test_task(self, uuid: int, note: str | None = None):
+        """
+        初始化测试任务
+        """
+        self.test_task = TestTask(
+            uuid=uuid,
+            timestamp=time.time(),
+            task_name=self.name,
+            task_type=self.test_type,
+            input_param_list=self.get_input_list(),
+            step_list=self.get_step_list(),
+            note=note,
+        )
+
+    def calculate(self, data: pd.DataFrame):
+        """
+        通用计算触发入口
+        """
+        self._validate_data()
+        self.test_task.org_dataframe = data
+        return self._perform_calculation(data)
+
+    def _validate_data(self):
+        for step in self.test_task.step_list:
+            if step.need and (step.timestamp_start is None or step.timestamp_end is None):
+                raise ValueError('关键步骤缺失时间戳数据')
+
+    @abstractmethod
+    def _perform_calculation(self, data: pd.DataFrame) -> tuple[str, str]:
+        pass
+
+    def export_test_task(self):
+        """
+        导出任务
+        """
+        return self.test_task
