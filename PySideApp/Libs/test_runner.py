@@ -4,7 +4,7 @@ from PySide6.QtCore import Signal, QTimer
 from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox
 
-from PySideApp.Libs.TestModuleLib import GBT2038058_2019
+from PySideApp.Libs.TestModuleLib import GBT38058_2019
 from PySideApp.Libs.test_tasks_lib import TestModule
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
