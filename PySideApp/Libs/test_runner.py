@@ -102,7 +102,7 @@ class TestRunner(Ui_Dialog, QDialog):
         self.tabWidget_test_runner.setTabEnabled(1, False)
         self.tabWidget_test_runner.setTabEnabled(2, False)
 
-    def set_test_info(self, uuid:int, module:TestModule|GBT2038058_2019.T6_4_5):
+    def set_test_info(self, uuid:int, module:TestModule|GBT38058_2019.T6_4_5):
         self.test_module = module
         self.reset_ui()
         self.lineEdit_uuid.setText(str(uuid))
