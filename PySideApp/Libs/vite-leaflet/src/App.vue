@@ -69,16 +69,6 @@ onMounted(() => {
       }
   ).setView([29.80708, 106.52285], 20);
 
-
-  // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  //   // attribution: '© OpenStreetMap contributors'
-  // }).addTo(map.value);
-
-  // // 添加高德地图图层
-  // L.tileLayer.chinaProvider('GaoDe.Normal.Map', {
-  // }).addTo(map.value);
-
-
   let sat_map = L.tileLayer.chinaProvider('GaoDe.Satellite.Map', {
   }).addTo(toRaw(map.value));
   let anno_map = L.tileLayer.chinaProvider('GaoDe.Satellite.Annotion', {
@@ -129,7 +119,10 @@ function onMeasureClear() {
 <style>
 .map-container {
   width: 100%;
-  height: 500px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .map-controls button {
