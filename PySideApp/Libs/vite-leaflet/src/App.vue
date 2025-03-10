@@ -26,10 +26,15 @@
 import { ref, onMounted, onUnmounted, toRaw } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet-hotline'
+import 'leaflet-rotatedmarker'
+import 'leaflet.chinatmsproviders'
+import './components/libs/leaflet.mapCorrection/leaflet.mapCorrection.js'
 import LeafletDistanceTool from './components/LeafletDistanceTool.vue';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-import initLeafletChina from './components/LeafletChinaProviders';
+import {QWebChannel} from './utils/qwebchannel_vue.js'
+
 let DefaultIcon = L.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
@@ -58,10 +63,24 @@ const distanceOptions = {
   cursor: 'crosshair'
 };
 
+// 创建一个全局桥接对象
+window.vueBridge = {};
+
 // 初始化地图
-onMounted(() => {
-  // 初始化中国地图插件
-  initLeafletChina();
+onMounted(async () => {
+  setup_leafletMap();
+  setupQWebChannel()
+});
+
+// 清理资源
+onUnmounted(() => {
+  if (map.value) {
+    map.value.remove();
+    map.value = null;
+  }
+});
+
+function setup_leafletMap() {
   // 地图
   map.value = L.map(mapContainer.value,
       {
@@ -82,19 +101,12 @@ onMounted(() => {
 
 
   // latlngs是标点坐标，格式同初始化地图时的中心坐标
-  let marker = L.marker([29.82553, 106.52651], {
+  let marker = L.marker([29.80708, 106.52285], {
+    // rotationAngle: 45
     // icon: DefaultIcon
   }).addTo(toRaw(map.value)); //添加到地图中
+}
 
-});
-
-// 清理资源
-onUnmounted(() => {
-  if (map.value) {
-    map.value.remove();
-    map.value = null;
-  }
-});
 
 // 切换测距工具
 function toggleDistanceTool() {
@@ -109,10 +121,50 @@ function onMeasurePoint(data) {
 function onMeasureComplete(data) {
   console.log('测距完成:', data.distance);
   isDistanceActive.value = false;
+  if(bridge) {
+    window.vueBridge.handleDrawEnd(data.distance.toString());
+  }
 }
 
 function onMeasureClear() {
   console.log('测距清除');
+}
+
+// 热力图绘制
+function updateHotline(coords) {
+  if (hotlineLayer) map.removeLayer(hotlineLayer)
+  let hotlineLayer = L.hotline(coords, { color: 'red', weight: 5 })
+  hotlineLayer.addTo(map)
+}
+
+// 设置QWebChannel连接
+function setupQWebChannel() {
+  // if (window.qt && window.qt.webChannelTransport) {
+  if (typeof qt != 'undefined') {
+    var bridge = null;
+    new QWebChannel(qt.webChannelTransport, function(channel) {
+      bridge = channel.objects.web_bridge;
+    });
+    console.log("Qt WebChannel Ready...");
+    regiPythonMethod()
+  } else {
+    console.log("Qt WebChannel NotExist, please Refresh...");
+  }
+}
+
+function regiPythonMethod() {
+  // 注册所有需要从Python访问的方法
+  window.vueBridge.openDistance = openDistance;
+  window.vueBridge.closeDistance = closeDistance;
+}
+
+function openDistance() {
+  // toggleDistanceTool();
+  distanceTool.open();
+}
+function closeDistance() {
+  // toggleDistanceTool();
+  distanceTool.value?.close();
 }
 </script>
 

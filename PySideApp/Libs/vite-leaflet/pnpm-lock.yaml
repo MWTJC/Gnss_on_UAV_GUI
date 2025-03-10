@@ -8,12 +8,24 @@ importers:
 
   .:
     dependencies:
+      '@types/leaflet':
+        specifier: ^1.9.16
+        version: 1.9.16
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
+      leaflet-hotline:
+        specifier: ^0.4.0
+        version: 0.4.0
       leaflet-measure-path:
         specifier: ^1.5.0
         version: 1.5.0
+      leaflet-rotatedmarker:
+        specifier: ^0.2.0
+        version: 0.2.0
+      leaflet.chinatmsproviders:
+        specifier: ^3.0.6
+        version: 3.0.6
       proj4leaflet:
         specifier: ^1.0.2
         version: 1.0.2
@@ -308,6 +320,12 @@ packages:
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
+  '@types/geojson@7946.0.16':
+    resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
+
+  '@types/leaflet@1.9.16':
+    resolution: {integrity: sha512-wzZoyySUxkgMZ0ihJ7IaUIblG8Rdc8AbbZKLneyn+QjYsj5q1QU7TEKYqwTr10BGSzY5LI7tJk9Ifo+mEjdFRw==}
+
   '@vitejs/plugin-vue@5.2.1':
     resolution: {integrity: sha512-cxh314tzaWwOLqVes2gnnCtvBDcM1UMdn+iFR+UjAn411dPT3tOmqrJjbMd7koZpMAmBM/GqeV4n9ge7JSiJJQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -364,8 +382,17 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
+  leaflet-hotline@0.4.0:
+    resolution: {integrity: sha512-+In6c8WxMsRKMmwQ1m2GmbNxbXvA3WsrOilJGK7l4Sj+mUDh1gdyGMYCIoRBtUeX7lMvBc4KKeEVAlwQERKpxg==}
+
   leaflet-measure-path@1.5.0:
     resolution: {integrity: sha512-veLRhd+TlJtPDLgCqN0i0SsYPMGCCMNchhDyLhn4TNdiTaWf68iTuXnts5UdiDDmUuVefc6pP9rHm+cKvOx5rQ==}
+
+  leaflet-rotatedmarker@0.2.0:
+    resolution: {integrity: sha512-yc97gxLXwbZa+Gk9VCcqI0CkvIBC9oNTTjFsHqq4EQvANrvaboib4UdeQLyTnEqDpaXHCqzwwVIDHtvz2mUiDg==}
+
+  leaflet.chinatmsproviders@3.0.6:
+    resolution: {integrity: sha512-B4UPSn2MT//RkFoyrVjwqQyfKuf4tSmMjJDKQ6nqwCCGgirYKRWHafSH9JmA88WoG5pkuMXBcKQhY32FobxU/g==}
 
   leaflet@1.9.4:
     resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
@@ -605,6 +632,12 @@ snapshots:
 
   '@types/estree@1.0.6': {}
 
+  '@types/geojson@7946.0.16': {}
+
+  '@types/leaflet@1.9.16':
+    dependencies:
+      '@types/geojson': 7946.0.16
+
   '@vitejs/plugin-vue@5.2.1(vite@6.2.0)(vue@3.5.13)':
     dependencies:
       vite: 6.2.0
@@ -701,7 +734,13 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
+  leaflet-hotline@0.4.0: {}
+
   leaflet-measure-path@1.5.0: {}
+
+  leaflet-rotatedmarker@0.2.0: {}
+
+  leaflet.chinatmsproviders@3.0.6: {}
 
   leaflet@1.9.4: {}
 
