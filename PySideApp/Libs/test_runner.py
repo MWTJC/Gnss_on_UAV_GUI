@@ -1,7 +1,7 @@
 import time
 
 from PySide6.QtCore import Signal, QTimer
-from PySide6.QtGui import QDoubleValidator
+from PySide6.QtGui import QDoubleValidator, QIntValidator
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox
 
 from PySideApp.Libs.TestModuleLib import GBT38058_2019
@@ -54,6 +54,7 @@ class TestRunner(Ui_Dialog, QDialog):
         self.refresh()
 
     def test_start(self):
+        param_list = []
         if self.param_input_lineedit_list:
             # 存储输入参数
             for lineedit, param_class in zip(self.param_input_lineedit_list, self.test_module.get_input_list()):
@@ -62,12 +63,16 @@ class TestRunner(Ui_Dialog, QDialog):
                     QMessageBox.warning(self, "警告", "请确认全部参数已输入...")
                     return
                 param_class.set_value(lineedit.text())
+                param_list.append(param_class)
 
         self.tabWidget_test_runner.setTabEnabled(0, False)
         self.tabWidget_test_runner.setTabEnabled(1, True)
         self.tabWidget_test_runner.setCurrentWidget(self.tab_test_runner)
         a = self.textEdit_mark.toPlainText()
-        self.test_module.init_test_task(uuid=int(self.lineEdit_uuid.text()), note=a)
+        self.test_module.init_test_task(
+            uuid=int(self.lineEdit_uuid.text()),
+            input_param_list=param_list, note=a
+        )
         self.refresh()
         self.timer.start(333)  # 设置0.3秒刷新一次
 
@@ -121,6 +126,7 @@ class TestRunner(Ui_Dialog, QDialog):
         input_list = self.test_module.get_input_list()
         if len(input_list) > 0:
             double_validator = QDoubleValidator()
+            int_validator = QIntValidator()
             # 为每个输入参数创建控件
             self.param_input_lineedit_list = []  # 记录输入函数框以方便取值
             for index, param in enumerate(input_list):
@@ -133,7 +139,10 @@ class TestRunner(Ui_Dialog, QDialog):
 
                 # 创建输入框
                 input_field = QLineEdit(self.groupBox_params)
-                input_field.setValidator(double_validator)
+                if param.type in ["float"]:
+                    input_field.setValidator(double_validator)
+                elif param.type in ["int"]:
+                    input_field.setValidator(int_validator)
                 input_field.setText(str(param.value))
 
                 # 创建单位标签

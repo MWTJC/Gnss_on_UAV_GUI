@@ -10,29 +10,39 @@ class T6_4_2(TestModule):
             name='6.4.2 最大作业半径',
             search_keywords=['38058', '作业半径', '642'],
         )
+        # 轮数指示
+        self.round_count = 3
+
+    def init_test_task(self, input_param_list, uuid: int, note: str | None = None):
+        # 在创建 test_task 之前,先获取输入的轮数
+        for param in input_param_list:
+            if param.name == '测试轮数 等于':
+                self.round_count = int(param.value)
+                break
+
+        super().init_test_task(uuid, input_param_list, note)
 
     def get_input_list(self):
         return [
+            TestParamInput('测试轮数 等于', self.round_count, '轮', data_type='int'),
             TestParamInput('半径 大于', 20.0, 'm')
         ]
 
     def get_step_list(self):
-        return [
-            TestStep('无人机起飞，飞行到大约10米高度'),
-            TestStep('第一轮：飞行到起点悬停，记为A1点'),
-            TestStep('以5m/s的速度操作无人机向设定的飞行半径飞行，确认飞机已经到达指定的飞行半径，记为B1点', True),
-            TestStep('在B1点保证无人机电量大于满电量的10%，准备向A1点返航'),
-            TestStep('开始返航，若电量不足无法继续返航，记为C1点', True),
-            TestStep('第二轮：飞行到起点悬停，记为A2点'),
-            TestStep('以5m/s的速度操作无人机向设定的飞行半径飞行，确认飞机已经到达指定的飞行半径，记为B2点', True),
-            TestStep('在B2点保证无人机电量大于满电量的10%，准备向A2点返航'),
-            TestStep('开始返航，若电量不足无法继续返航，记为C2点', True),
-            TestStep('第三轮：飞行到起点悬停，记为A3点'),
-            TestStep('以5m/s的速度操作无人机向设定的飞行半径飞行，确认飞机已经到达指定的飞行半径，记为B3点', True),
-            TestStep('在B3点保证无人机电量大于满电量的10%，准备向A3点返航'),
-            TestStep('开始返航，若电量不足无法继续返航，记为C3点', True),
-            TestStep('记录完成。'),
+        list_temp = [
+            TestStep('无人机起飞'),
+            TestStep('飞行到A点后，点击下一步'),
         ]
+        for i in range(self.round_count):
+            list_temp.extend([
+                    TestStep(f'第{i+1}轮：直线平飞飞行到B点，到达B点后，点击下一步', True),
+                    TestStep('直线平飞向A点返航，到达A点后点击下一步', True),
+                ])
+        list_temp.extend([
+                TestStep('直线平飞向A点返航，到达A点后点击下一步', True),
+                TestStep('记录完成。'),
+            ])
+        return list_temp
 
     def _perform_calculation(self, data:pd.DataFrame):
         inputs = []

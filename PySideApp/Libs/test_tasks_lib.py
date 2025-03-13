@@ -18,10 +18,11 @@ class TestStep:
         self.timestamp_end = timestamp_end
 
 class TestParamInput:
-    def __init__(self, param_name:str, param_value:float, unit=''):
+    def __init__(self, param_name:str, param_value:float|int, unit='', data_type='float'):
         self.name = param_name
         self.value = param_value
         self.unit = unit
+        self.type = data_type
 
     def set_value(self, new_value):
         self.value = new_value
@@ -109,7 +110,7 @@ class TestModule:
         """
         pass
 
-    def init_test_task(self, uuid: int, note: str | None = None):
+    def init_test_task(self, uuid: int, input_param_list: list[TestParamInput], note: str | None = None, ):
         """
         初始化测试任务
         """
@@ -118,7 +119,7 @@ class TestModule:
             timestamp=time.time(),
             task_name=self.name,
             task_type=self.test_type,
-            input_param_list=self.get_input_list(),
+            input_param_list=input_param_list,
             step_list=self.get_step_list(),
             note=note,
         )
