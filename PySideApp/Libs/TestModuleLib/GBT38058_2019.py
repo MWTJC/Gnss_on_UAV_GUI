@@ -35,11 +35,10 @@ class T6_4_2(TestModule):
         ]
         for i in range(self.round_count):
             list_temp.extend([
-                    TestStep(f'第{i+1}轮：直线平飞飞行到B点，到达B点后，点击下一步', True),
-                    TestStep('直线平飞向A点返航，到达A点后点击下一步', True),
+                    TestStep(f'第{i + 1}/{self.round_count}轮：直线平飞飞行到B点，到达B点后，点击下一步', True),
+                    TestStep(f'第{i + 1}/{self.round_count}轮,直线平飞向A点返航，到达A点后或确认无法回到A点后，点击下一步', True),
                 ])
         list_temp.extend([
-                TestStep('直线平飞向A点返航，到达A点后点击下一步', True),
                 TestStep('记录完成。'),
             ])
         return list_temp
