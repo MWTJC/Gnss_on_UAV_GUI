@@ -3,6 +3,7 @@ from PySideApp.Libs.TestModuleLib.DLT1578_2021 import *
 from PySideApp.Libs.TestModuleLib.GAT1411_3_4_2017 import *
 from PySideApp.Libs.TestModuleLib.GB42590_2023 import *
 from PySideApp.Libs.TestModuleLib.Tools import *
+from PySideApp.Libs.TestModuleLib.EXAMPLE import *
 
 def get_all_test():
     test_list = []
