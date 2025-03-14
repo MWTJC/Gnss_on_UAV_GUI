@@ -634,48 +634,48 @@ class T6_7_1(TestModule):
         self.test_task.org_dataframe = data
         return '1212.4', '0.05'
 
+class T6_7_2(TestModule):
+    def __init__(self):
+        super().__init__(
+            test_type='GB/T 38058-2019 民用多旋翼无人机系统试验方法',
+            name='6.7.2 信息传输距离',
+            search_keywords=['38058', '信息传输', '传输', '672'],
+        )
+        # 轮数指示
+        self.round_count = 5
 
-# class T6_7_2(TestModule):
-#     def __init__(self):
-#         super().__init__(
-#             test_type='GB/T 38058-2019 民用多旋翼无人机系统试验方法',
-#             name='6.4.6 高度保持性能',
-#             search_keywords=['38058', '高度', '高度保持', '646'],
-#         )
-#
-#     def get_input_list(self):
-#         return [
-#             TestParamInput('定高误差 小于', 5.0, 'm'),
-#             TestParamInput('定高波动大小 小于', 11.1, 'm'),
-#             TestParamInput('预设高度H1', 7.0, 'm'),
-#             TestParamInput('预设高度H2', 14.0, 'm'),
-#             TestParamInput('预设高度H3', 23.0, 'm'),
-#         ]
-#
-#     def get_step_list(self):
-#         return [
-#             TestStep('无人机起飞'),
-#             TestStep('飞行到预设高度H1，平稳后点击下一步'),
-#             TestStep('第一轮：以当前高度水平飞行30s', True),
-#             TestStep('飞行到预设高度H2，平稳后点击下一步'),
-#             TestStep('第二轮：以当前高度水平飞行30s', True),
-#             TestStep('飞行到预设高度H3，平稳后点击下一步'),
-#             TestStep('第三轮：以当前高度水平飞行30s', True),
-#             TestStep('记录完成。'),
-#         ]
-#
-#     def _perform_calculation(self, data:pd.DataFrame):
-#         inputs = []
-#         for param in self.test_task.input_param_list:
-#             inputs.append(param.value)
-#         for step in self.test_task.step_list:
-#             if step.need:
-#                 if step.timestamp_start is None or step.timestamp_end is None:
-#                     e = '关键的步骤缺失时间戳数据'
-#                     raise e
-#                 else:
-#                     """
-#                     从dataframe截取指定时间戳之间的数据
-#                     """
-#         self.test_task.org_dataframe = data
-#         return '1212.4', '0.05'
+    def get_input_list(self):
+        return [
+            TestParamInput('坐标零点', 0.0, data_type="xy_point"),
+        ]
+
+    def get_step_list(self):
+        list_temp = [
+            TestStep('无人机放置于坐标零点起飞，下一步'),
+        ]
+        for i in range(self.round_count):
+            round_pre = f"第{i + 1}/{self.round_count}轮："
+            list_temp.extend([
+                TestStep(f'{round_pre}从零点开始直线低空飞行，确认到无人机数据传输质量出问题后，点击下一步', True),
+                TestStep(f'{round_pre}返回零点后，点击下一步'),
+            ])
+        list_temp.extend([
+            TestStep('记录完成。'),
+        ])
+        return list_temp
+
+    def _perform_calculation(self, data:pd.DataFrame):
+        inputs = []
+        for param in self.test_task.input_param_list:
+            inputs.append(param.value)
+        for step in self.test_task.step_list:
+            if step.need:
+                if step.timestamp_start is None or step.timestamp_end is None:
+                    e = '关键的步骤缺失时间戳数据'
+                    raise e
+                else:
+                    """
+                    从dataframe截取指定时间戳之间的数据
+                    """
+        self.test_task.org_dataframe = data
+        return '1212.4', '0.05'
