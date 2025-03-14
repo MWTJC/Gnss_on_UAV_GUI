@@ -333,6 +333,17 @@ class T6_4_9(TestModule):
             name='6.4.9 定点悬停',
             search_keywords=['38058', '定点', '悬停', '649'],
         )
+        # 轮数指示
+        self.round_count = 5
+
+    def init_test_task(self, input_param_list, uuid: int, note: str | None = None):
+        # 先取得输入参数的值
+        for param in input_param_list:
+            if param.name == '悬停高度 等于':
+                self.height = float(param.value)
+                break
+
+        super().init_test_task(uuid, input_param_list, note)
 
     def get_input_list(self):
         return [
@@ -340,20 +351,20 @@ class T6_4_9(TestModule):
         ]
 
     def get_step_list(self):
-        return [
-            TestStep('无人机起飞'),
-            TestStep('飞行到位置1并达到预设悬停高度，开启悬停模式后，点击下一步',True),
-            TestStep('第一轮：保持悬停3分钟，计时器达到3分钟后点击下一步', True),
-            TestStep('飞行到位置2并达到预设悬停高度，开启悬停模式后，点击下一步', True),
-            TestStep('第二轮：保持悬停3分钟，计时器达到3分钟后点击下一步', True),
-            TestStep('飞行到位置3并达到预设悬停高度，开启悬停模式后，点击下一步', True),
-            TestStep('第三轮：保持悬停3分钟，计时器达到3分钟后点击下一步', True),
-            TestStep('飞行到位置4并达到预设悬停高度，开启悬停模式后，点击下一步', True),
-            TestStep('第四轮：保持悬停3分钟，计时器达到3分钟后点击下一步', True),
-            TestStep('飞行到位置5并达到预设悬停高度，开启悬停模式后，点击下一步', True),
-            TestStep('第五轮：保持悬停3分钟，计时器达到3分钟后点击下一步', True),
-            TestStep('记录完成。'),
+        list_temp = [
+            TestStep(f'无人机起飞到离地{self.height}米处'),
         ]
+        for i in range(self.round_count):
+            round_pre = f"第{i + 1}/{self.round_count}轮："
+            list_temp.extend([
+                TestStep(f'{round_pre}移动到悬停点{i + 1}/{self.round_count}，启动悬停功能后，点击下一步'),
+                TestStep(f'{round_pre}保持3分钟后，点击下一步', True),
+            ])
+        list_temp.extend([
+            TestStep('记录完成。'),
+        ])
+
+        return list_temp
 
     def _perform_calculation(self, data:pd.DataFrame):
         inputs = []
