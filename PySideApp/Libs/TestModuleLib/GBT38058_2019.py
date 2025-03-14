@@ -588,6 +588,52 @@ class T6_4_11(TestModule):
 #                     """
 #         self.test_task.org_dataframe = data
 #         return '1212.4', '0.05'
+class T6_7_1(TestModule):
+    def __init__(self):
+        super().__init__(
+            test_type='GB/T 38058-2019 民用多旋翼无人机系统试验方法',
+            name='6.7.1 遥控遥测距离',
+            search_keywords=['38058', '遥控', '遥测', '671'],
+        )
+        # 轮数指示
+        self.round_count = 5
+
+    def get_input_list(self):
+        return [
+            TestParamInput('坐标零点', 0.0, data_type="xyz_point"),
+        ]
+
+    def get_step_list(self):
+        list_temp = [
+            TestStep('无人机放置于坐标零点起飞，下一步'),
+        ]
+        for i in range(self.round_count):
+            round_pre = f"第{i + 1}/{self.round_count}轮："
+            list_temp.extend([
+                TestStep(f'{round_pre}从零点开始直线低空飞行，确认到无人机系统提示功能异常后，点击下一步', True),
+                TestStep(f'{round_pre}返回零点后，点击下一步'),
+            ])
+        list_temp.extend([
+            TestStep('记录完成。'),
+        ])
+        return list_temp
+
+    def _perform_calculation(self, data:pd.DataFrame):
+        inputs = []
+        for param in self.test_task.input_param_list:
+            inputs.append(param.value)
+        for step in self.test_task.step_list:
+            if step.need:
+                if step.timestamp_start is None or step.timestamp_end is None:
+                    e = '关键的步骤缺失时间戳数据'
+                    raise e
+                else:
+                    """
+                    从dataframe截取指定时间戳之间的数据
+                    """
+        self.test_task.org_dataframe = data
+        return '1212.4', '0.05'
+
 
 # class T6_7_2(TestModule):
 #     def __init__(self):
