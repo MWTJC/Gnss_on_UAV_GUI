@@ -67,6 +67,15 @@ class T6_4_3(TestModule):
             search_keywords=['38058', '海拔高度', '高度', '海拔', '643'],
         )
 
+    def init_test_task(self, input_param_list, uuid: int, note: str | None = None):
+        # 先取得输入参数的值
+        for param in input_param_list:
+            if param.name == '海拔高度 大于':
+                self.height = float(param.value)
+                break
+
+        super().init_test_task(uuid, input_param_list, note)
+
     def get_input_list(self):
         return [
             TestParamInput('海拔高度 大于', 50.0, 'm')
@@ -75,7 +84,7 @@ class T6_4_3(TestModule):
     def get_step_list(self):
         return [
             TestStep('无人机起飞'),
-            TestStep('逐渐抬高无人机高度，确认无人机已经到达最大飞行高度'),
+            TestStep(f'逐渐抬高无人机高度，确认无人机已经到达海拔高度{self.height}米'),
             TestStep('操作无人机前飞、后飞、侧飞、转向，并悬停3min', True),
             TestStep('记录完成。'),
         ]
