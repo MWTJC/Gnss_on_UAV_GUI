@@ -7,6 +7,7 @@ import sys
 import locale
 import time
 from pathlib import Path
+from natsort import natsorted
 
 from PySide6.QtWebChannel import QWebChannel
 from loguru import logger
@@ -241,7 +242,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             raise
 
         # 先根据名称排序
-        test_module_list = sorted(test_module_list, key=lambda x: locale.strxfrm(x.name))
+        test_module_list = natsorted(test_module_list, key=lambda x: x.name)
         # 统计有哪几类
         type_list = []
         for test_module in test_module_list:

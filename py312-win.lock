@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:7909ea8af538a4ee26dd7972249620b6a7ff79549b5a7b76c93bc972adacafbb"
+content_hash = "sha256:6060b8be31e7e94e1ef73f6b11cee52be8ef76c167c26952082acd15c393a201"
 
 [[metadata.targets]]
 requires_python = ">=3.10,<=3.13"
@@ -96,6 +96,17 @@ dependencies = [
 files = [
     {file = "loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c"},
     {file = "loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6"},
+]
+
+[[package]]
+name = "natsort"
+version = "8.4.0"
+requires_python = ">=3.7"
+summary = "Simple yet flexible natural sorting in Python."
+groups = ["default"]
+files = [
+    {file = "natsort-8.4.0-py3-none-any.whl", hash = "sha256:4732914fb471f56b5cce04d7bae6f164a592c7712e1c85f9ef585e197299521c"},
+    {file = "natsort-8.4.0.tar.gz", hash = "sha256:45312c4a0e5507593da193dedd04abb1469253b601ecaf63445ad80f0a1ea581"},
 ]
 
 [[package]]
