@@ -162,25 +162,30 @@ class T6_4_5(TestModule):
             name='6.4.5 最大爬升速率',
             search_keywords=['38058', '爬升速率', '爬升速度', '爬升', '爬升率', '645'],
         )
+        # 轮数指示
+        self.round_count = 3
 
     def get_input_list(self):
         return [
-            TestParamInput('爬升率 大于', 5.0, 'm/s')
+            # TestParamInput('爬升率 大于', 5.0, 'm/s')
         ]
 
     def get_step_list(self):
-        return [
-            TestStep('无人机起飞，飞行到大约3米高度'),
-            TestStep('准备控制无人机以最大速度爬升，到爬升速度稳定后点击下一步开始测量'),
-            TestStep('按照最大爬升速度爬升5s，第一次测量', True),
-            TestStep('控制无人机回到起点'),
-            TestStep('准备控制无人机以最大速度爬升，到爬升速度稳定后点击下一步开始测量'),
-            TestStep('按照最大爬升速度爬升5s，第二次测量', True),
-            TestStep('控制无人机回到起点'),
-            TestStep('准备控制无人机以最大速度爬升，到爬升速度稳定后点击下一步开始测量'),
-            TestStep('按照最大爬升速度爬升5s，第三次测量', True),
-            TestStep('记录完成。'),
+        list_temp = [
+            TestStep('无人机起飞，点击下一步'),
         ]
+        for i in range(self.round_count):
+            round_pre = f"第{i + 1}/{self.round_count}轮："
+            list_temp.extend([
+                TestStep(f'{round_pre}无人机加速爬升，确认到达最大爬升速度后，点击下一步'),
+                TestStep(f'{round_pre}保持最大爬升速度飞行5秒后，点击下一步', True),
+                TestStep(f'{round_pre}无人机回到起点准备下一轮测试或完成测试'),
+            ])
+        list_temp.extend([
+            TestStep('记录完成。'),
+        ])
+
+        return list_temp
 
     def _perform_calculation(self, data:pd.DataFrame):
         inputs = []
