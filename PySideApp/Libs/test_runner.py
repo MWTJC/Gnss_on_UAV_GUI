@@ -1,8 +1,8 @@
 import time
 
 from PySide6.QtCore import Signal, QTimer
-from PySide6.QtGui import QDoubleValidator, QIntValidator
-from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox
+from PySide6.QtGui import QDoubleValidator, QIntValidator, Qt
+from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox, QPushButton
 
 from PySideApp.Libs.TestModuleLib import GBT38058_2019
 from PySideApp.Libs.test_tasks_lib import TestModule
@@ -216,13 +216,17 @@ class TestRunner(Ui_Dialog, QDialog):
                 self.formLayout_params.setWidget(index, QFormLayout.ItemRole.LabelRole, label)
                 self.formLayout_params.setLayout(index, QFormLayout.ItemRole.FieldRole, h_layout)
 
-                # 记录lineedit
-                self.param_input_lineedit_list.append(input_field)
-            # 添加进现有布局
-            self.verticalLayout_4.insertWidget(1, self.groupBox_params)  # 有参数
+
         else:  # 没参数
-            label = QLabel(self.groupBox_params)
-            label.setText("无输入参数")
+            h_layout = QHBoxLayout()
+            label = QLabel("无输入参数")
+            h_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.groupBox_params.setLayout(h_layout)
+            # 将标签添加到水平布局
+            h_layout.addWidget(label)
+            self.formLayout_params.setWidget(0, QFormLayout.ItemRole.LabelRole, label)
+        # 添加进现有布局
+        self.verticalLayout_4.insertWidget(1, self.groupBox_params)
 
     def test_finished(self):
         self.timer.stop()
