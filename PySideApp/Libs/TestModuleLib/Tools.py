@@ -1,24 +1,23 @@
 import pandas as pd
 from PySideApp.Libs.test_tasks_lib import TestModule, TestParamInput, TestStep
-
+TYPE = "基本"
 
 class MaxHeight(TestModule):
     def __init__(self):
         super().__init__(
-            test_type='基本',
-            name='最大飞行高度',
-            search_keywords=['高度', '高'],
+            test_type=TYPE,
+            name='轨迹记录',
+            search_keywords=['轨迹',],
         )
 
     def get_input_list(self):
         return [
-            TestParamInput('高度 大于', 50.0, 'm')
         ]
 
     def get_step_list(self):
         return [
-            TestStep('无人机起飞，飞行到大约10米高度，悬停'),
-            TestStep('开始逐渐抬高飞机高度，确认飞机已经到达最高飞行高度', True),
+            TestStep('无人机起飞，点击下一步开始轨迹记录'),
+            TestStep('正在采集，完成则点击下一步', True),
             TestStep('记录完成。'),
         ]
 
