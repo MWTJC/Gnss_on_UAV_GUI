@@ -273,24 +273,39 @@ class T6_4_7(TestModule):
             name='6.4.7 速度保持性能',
             search_keywords=['38058', '速度', '速度保持', '647'],
         )
+        self.height_list = []
+
+    def init_test_task(self, input_param_list, uuid: int, note: str | None = None):
+        # 先取得输入参数的值
+        for param in input_param_list:
+            if param.name == '预设高度H1':
+                self.height_list.append(float(param.value))
+            elif param.name == '预设高度H2':
+                self.height_list.append(float(param.value))
+            elif param.name == '预设高度H3':
+                self.height_list.append(float(param.value))
+                break
+
+        super().init_test_task(uuid, input_param_list, note)
 
     def get_input_list(self):
         return [
-            TestParamInput('定速误差 小于', 5.0, 'm'),
-            TestParamInput('定速波动大小 小于', 11.1, 'm'),
             TestParamInput('预设高度H1', 7.0, 'm'),
             TestParamInput('预设高度H2', 14.0, 'm'),
             TestParamInput('预设高度H3', 23.0, 'm'),
+            TestParamInput('v1', 2.0, 'm/s'),
+            TestParamInput('v2', 2.4, 'm/s'),
+            TestParamInput('v3', 2.8, 'm/s'),
         ]
 
     def get_step_list(self):
         return [
             TestStep('无人机起飞'),
-            TestStep('飞行到预设高度H1，平稳后请开始水平飞行，速度稳定后点击下一步开始采集'),
+            TestStep(f'第一轮：飞行到预设高度{self.height_list[1]}米，平稳后点击下一步'),
             TestStep('第一轮：以当前高度水平飞行30s', True),
-            TestStep('飞行到预设高度H2，平稳后请开始水平飞行，速度稳定后点击下一步开始采集'),
+            TestStep(f'第二轮：飞行到预设高度{self.height_list[1]}米，平稳后点击下一步'),
             TestStep('第二轮：以当前高度水平飞行30s', True),
-            TestStep('飞行到预设高度H3，平稳后请开始水平飞行，速度稳定后点击下一步开始采集'),
+            TestStep(f'第三轮：飞行到预设高度{self.height_list[1]}米，平稳后点击下一步'),
             TestStep('第三轮：以当前高度水平飞行30s', True),
             TestStep('记录完成。'),
         ]
