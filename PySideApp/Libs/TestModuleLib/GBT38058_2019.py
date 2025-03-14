@@ -544,50 +544,6 @@ class T6_4_11(TestModule):
 #         self.test_task.org_dataframe = data
 #         return '1212.4', '0.05'
 
-# class T6_7_1(TestModule):
-#     def __init__(self):
-#         super().__init__(
-#             test_type='GB/T 38058-2019 民用多旋翼无人机系统试验方法',
-#             name='6.4.6 高度保持性能',
-#             search_keywords=['38058', '高度', '高度保持', '646'],
-#         )
-#
-#     def get_input_list(self):
-#         return [
-#             TestParamInput('定高误差 小于', 5.0, 'm'),
-#             TestParamInput('定高波动大小 小于', 11.1, 'm'),
-#             TestParamInput('预设高度H1', 7.0, 'm'),
-#             TestParamInput('预设高度H2', 14.0, 'm'),
-#             TestParamInput('预设高度H3', 23.0, 'm'),
-#         ]
-#
-#     def get_step_list(self):
-#         return [
-#             TestStep('无人机起飞'),
-#             TestStep('飞行到预设高度H1，平稳后点击下一步'),
-#             TestStep('第一轮：以当前高度水平飞行30s', True),
-#             TestStep('飞行到预设高度H2，平稳后点击下一步'),
-#             TestStep('第二轮：以当前高度水平飞行30s', True),
-#             TestStep('飞行到预设高度H3，平稳后点击下一步'),
-#             TestStep('第三轮：以当前高度水平飞行30s', True),
-#             TestStep('记录完成。'),
-#         ]
-#
-#     def _perform_calculation(self, data:pd.DataFrame):
-#         inputs = []
-#         for param in self.test_task.input_param_list:
-#             inputs.append(param.value)
-#         for step in self.test_task.step_list:
-#             if step.need:
-#                 if step.timestamp_start is None or step.timestamp_end is None:
-#                     e = '关键的步骤缺失时间戳数据'
-#                     raise e
-#                 else:
-#                     """
-#                     从dataframe截取指定时间戳之间的数据
-#                     """
-#         self.test_task.org_dataframe = data
-#         return '1212.4', '0.05'
 class T6_7_1(TestModule):
     def __init__(self):
         super().__init__(
