@@ -19,6 +19,9 @@ class TestStep:
 
 class TestParamInput:
     def __init__(self, param_name:str, param_value:float|int, unit='', data_type='float'):
+        """
+        data_type可选值：'int', 'float', 'xy_point', 'xyz_point', 'z'
+        """
         self.name = param_name
         self.value = param_value
         self.unit = unit

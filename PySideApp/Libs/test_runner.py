@@ -137,21 +137,80 @@ class TestRunner(Ui_Dialog, QDialog):
                 # 创建水平布局来包含输入框和单位标签
                 h_layout = QHBoxLayout()
 
-                # 创建输入框
-                input_field = QLineEdit(self.groupBox_params)
-                if param.type in ["float"]:
-                    input_field.setValidator(double_validator)
-                elif param.type in ["int"]:
-                    input_field.setValidator(int_validator)
-                input_field.setText(str(param.value))
+                if param.type in ["xy_point", "xyz_point", "z"]:
+                    # 特殊类型处理
+                    fields = []
 
-                # 创建单位标签
-                unit_label = QLabel(self.groupBox_params)
-                unit_label.setText(param.unit)
+                    if param.type == "xy_point":
+                        # 经纬度输入框
+                        for _ in range(2):
+                            field = QLineEdit(self.groupBox_params)
+                            field.setValidator(double_validator)
+                            h_layout.addWidget(field)
+                            fields.append(field)
 
-                # 将输入框和单位标签添加到水平布局
-                h_layout.addWidget(input_field)
-                h_layout.addWidget(unit_label)
+                    elif param.type == "xyz_point":
+                        # 经纬度和海拔输入框
+                        for _ in range(3):
+                            field = QLineEdit(self.groupBox_params)
+                            field.setValidator(double_validator)
+                            h_layout.addWidget(field)
+                            fields.append(field)
+
+                    elif param.type == "z":
+                        # 海拔输入框
+                        field = QLineEdit(self.groupBox_params)
+                        field.setValidator(double_validator)
+                        h_layout.addWidget(field)
+                        fields.append(field)
+
+                    # 添加获取定位按钮
+                    location_btn = QPushButton("获取定位", self.groupBox_params)
+
+                    def create_toggle_handler(btn, input_fields):
+                        def toggle_location():
+                            if btn.text() == "获取定位":
+                                # 这里添加获取定位的逻辑
+                                success = True  # 假设获取成功
+                                if success:
+                                    # 设置值并禁用输入框
+                                    for field in input_fields:
+                                        field.setDisabled(True)
+                                    btn.setText("手动")
+                                    btn.setStyleSheet("background-color: #3fa73d;")
+                            else:
+                                # 恢复手动输入
+                                for field in input_fields:
+                                    field.setDisabled(False)
+                                btn.setText("获取定位")
+                                btn.setStyleSheet("")
+
+                        return toggle_location
+
+                    location_btn.clicked.connect(create_toggle_handler(location_btn, fields))
+                    h_layout.addWidget(location_btn)
+
+                    self.param_input_lineedit_list.extend(fields)
+
+                else:
+                    # 创建输入框
+                    input_field = QLineEdit(self.groupBox_params)
+                    if param.type in ["float"]:
+                        input_field.setValidator(double_validator)
+                    elif param.type in ["int"]:
+                        input_field.setValidator(int_validator)
+                    input_field.setText(str(param.value))
+
+                    # 创建单位标签
+                    unit_label = QLabel(self.groupBox_params)
+                    unit_label.setText(param.unit)
+
+                    # 将输入框和单位标签添加到水平布局
+                    h_layout.addWidget(input_field)
+                    h_layout.addWidget(unit_label)
+
+                    # 记录lineedit
+                    self.param_input_lineedit_list.append(input_field)
 
                 # 将标签和水平布局添加到参数表单布局
                 self.formLayout_params.setWidget(index, QFormLayout.ItemRole.LabelRole, label)
