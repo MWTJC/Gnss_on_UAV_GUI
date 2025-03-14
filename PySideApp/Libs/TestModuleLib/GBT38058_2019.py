@@ -112,26 +112,32 @@ class T6_4_4(TestModule):
             name='6.4.4 最大平飞速度',
             search_keywords=['38058', '平飞', '速度', '644'],
         )
+        # 轮数指示
+        self.round_count = 2
 
     def get_input_list(self):
         return [
-            TestParamInput('速度 大于', 11.1, 'm/s')
+            # TestParamInput('速度 大于', 11.1, 'm/s')
         ]
 
     def get_step_list(self):
-        return [
-            TestStep('无人机起飞'),
-            TestStep('飞行到大约100m ± 10m米高度'),
-            TestStep('操作无人机进行水平直线加速飞行，达到最大速度飞行的稳定状态后点击下一步'),
-            TestStep('第一轮：无人机按最大速度飞行，飞行航段达到500m后，点击下一步', True),
-            TestStep('减速重整姿态，向相反方向加速，达到最大速度飞行的稳定状态后点击下一步'),
-            TestStep('第二轮：无人机按最大速度飞行，飞行航段达到500m后，点击下一步', True),
-            TestStep('减速重整姿态，向相反方向加速，达到最大速度飞行的稳定状态后点击下一步'),
-            TestStep('第三轮：无人机按最大速度飞行，飞行航段达到500m后，点击下一步', True),
-            TestStep('减速重整姿态，向相反方向加速，达到最大速度飞行的稳定状态后点击下一步'),
-            TestStep('第四轮：无人机按最大速度飞行，飞行航段达到500m后，点击下一步', True),
-            TestStep('记录完成。'),
+        list_temp = [
+            TestStep('无人机起飞到空旷处，准备进行水平加速飞行'),
         ]
+        for i in range(self.round_count):
+            round_pre = f"第{i + 1}/{self.round_count}轮："
+            list_temp.extend([
+                TestStep(f'{round_pre}操作无人机进行水平直线加速飞行，确认达到最大速度飞行的稳定状态后，点击下一步'),
+                TestStep(f'{round_pre}保持最大速度飞行5秒后，点击下一步', True),
+                TestStep(f'{round_pre}无人机转向180°，确保方向与上一步相反'),
+                TestStep(f'{round_pre}操作无人机进行水平直线加速飞行，确认达到最大速度飞行的稳定状态后，点击下一步'),
+                TestStep(f'{round_pre}保持最大速度飞行5秒后，点击下一步', True),
+            ])
+        list_temp.extend([
+            TestStep('记录完成。'),
+        ])
+
+        return list_temp
 
     def _perform_calculation(self, data:pd.DataFrame):
         inputs = []
