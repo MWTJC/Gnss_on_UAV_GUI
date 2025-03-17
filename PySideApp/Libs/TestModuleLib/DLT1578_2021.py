@@ -3,24 +3,22 @@ from PySideApp.Libs.test_tasks_lib import TestModule, TestParamInput, TestStep
 
 TYPE = 'DL/T 1578-2021 架空电力线路多旋翼无人机巡检系统'
 
-class T6_3_2_4(TestModule):
+class T1578_6327(TestModule):
     def __init__(self):
         super().__init__(
             test_type=TYPE,
-            name='6.3.2.4 导航定位偏差实验',
-            search_keywords=['1578', '定位偏差', '6324'],
+            name='6.3.2.7 惯性飞行距离试验',
+            search_keywords=['1578', '惯性', '6327'],
         )
 
     def get_input_list(self):
         return [
-            TestParamInput('半径 大于', 20.0, 'm')
         ]
 
     def get_step_list(self):
         return [
-            TestStep('无人机起飞，飞行到大约10米高度'),
-            TestStep('第一轮：飞行到起点悬停，记为A1点'),
-            TestStep('以5m/s的速度操作无人机向设定的飞行半径飞行，确认飞机已经到达指定的飞行半径，记为B1点', True),
+            TestStep('无人机起飞，按照标准描述设定航线，以2m/s飞行，下一步'),
+            TestStep('请断开所有飞行指令，使无人机仅在惯性作用下减速滑行至停止，无人机停止后点击下一步', True),
             TestStep('记录完成。'),
         ]
 
