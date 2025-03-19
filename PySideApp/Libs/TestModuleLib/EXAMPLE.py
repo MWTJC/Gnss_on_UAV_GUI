@@ -1,5 +1,6 @@
 import pandas as pd
-from PySideApp.Libs.test_tasks_lib import TestModule, TestParamInput, TestStep
+from PySideApp.Libs.test_tasks_lib import TestModule, TestParamInput, TestStep, ParamType
+
 TYPE = "DEBUG"
 
 
@@ -7,7 +8,7 @@ class TEST(TestModule):
     def __init__(self):
         super().__init__(
             test_type=TYPE,
-            name='测试',
+            name='测试',  # 避免使用特殊符号如&似乎qt这边不会显示
             search_keywords=['DEBUG', ],
         )
         # 轮数指示
@@ -24,12 +25,12 @@ class TEST(TestModule):
 
     def get_input_list(self):
         return [
-            TestParamInput('xy点 经 纬', 0.0, data_type="xy_point"),
-            TestParamInput('xyz点 经 纬', 0.0, data_type="xyz_point"),
-            TestParamInput('z高度', 0.0, data_type="z"),
-            TestParamInput('整数参数', 1, data_type="int", unit="次"),
+            TestParamInput('xy点 经 纬', 0.0, data_type=ParamType.xy_point),
+            TestParamInput('xyz点 经 纬', 0.0, data_type=ParamType.xyz_point),
+            TestParamInput('z高度', 0.0, data_type=ParamType.z),
+            TestParamInput('整数参数', 1, data_type=ParamType.int, unit="次"),
             TestParamInput('普通参数', 20.0, unit="米"),
-            TestParamInput('轮数', 5, data_type="int", unit="轮"),
+            TestParamInput('轮数', 5, data_type=ParamType.int, unit="轮"),
         ]
 
     def get_step_list(self):

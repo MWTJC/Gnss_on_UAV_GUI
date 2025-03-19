@@ -1,5 +1,5 @@
 import pandas as pd
-from PySideApp.Libs.test_tasks_lib import TestModule, TestParamInput, TestStep
+from PySideApp.Libs.test_tasks_lib import TestModule, TestParamInput, TestStep, ParamType
 
 TYPE = 'GB/T 38058-2019 民用多旋翼无人机系统试验方法'
 
@@ -24,7 +24,7 @@ class T6_4_2(TestModule):
 
     def get_input_list(self):
         return [
-            TestParamInput('测试轮数 等于', self.round_count, '轮', data_type='int'),
+            TestParamInput('测试轮数 等于', self.round_count, '轮', data_type=ParamType.int),
             TestParamInput('半径 大于', 20.0, 'm')
         ]
 
@@ -427,8 +427,8 @@ class T6_4_11(TestModule):
 
     def get_input_list(self):
         return [
-            TestParamInput('轨迹起点 经 纬', 0.0, data_type="xy_point"),
-            TestParamInput('轨迹终点 经 纬', 0.0, data_type="xy_point"),
+            TestParamInput('轨迹起点 经 纬', 0.0, data_type=ParamType.xy_point),
+            TestParamInput('轨迹终点 经 纬', 0.0, data_type=ParamType.xy_point),
         ]
 
     def get_step_list(self):
@@ -556,7 +556,7 @@ class T6_7_1(TestModule):
 
     def get_input_list(self):
         return [
-            TestParamInput('坐标零点', 0.0, data_type="xyz_point"),
+            TestParamInput('坐标零点', 0.0, data_type=ParamType.xyz_point),
         ]
 
     def get_step_list(self):
@@ -602,7 +602,7 @@ class T6_7_2(TestModule):
 
     def get_input_list(self):
         return [
-            TestParamInput('坐标零点', 0.0, data_type="xy_point"),
+            TestParamInput('坐标零点', 0.0, data_type=ParamType.xy_point),
         ]
 
     def get_step_list(self):

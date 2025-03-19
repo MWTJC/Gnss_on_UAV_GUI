@@ -5,7 +5,7 @@ from PySide6.QtGui import QDoubleValidator, QIntValidator, Qt
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox, QPushButton
 
 from PySideApp.Libs.TestModuleLib import GBT38058_2019
-from PySideApp.Libs.test_tasks_lib import TestModule
+from PySideApp.Libs.test_tasks_lib import TestModule, ParamType
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
 
@@ -137,11 +137,11 @@ class TestRunner(Ui_Dialog, QDialog):
                 # 创建水平布局来包含输入框和单位标签
                 h_layout = QHBoxLayout()
 
-                if param.type in ["xy_point", "xyz_point", "z"]:
+                if param.type in [ParamType.xy_point, ParamType.xyz_point, ParamType.z]:
                     # 特殊类型处理
                     fields = []
 
-                    if param.type == "xy_point":
+                    if param.type == ParamType.xy_point:
                         # 经纬度输入框
                         for _ in range(2):
                             field = QLineEdit(self.groupBox_params)
@@ -149,7 +149,7 @@ class TestRunner(Ui_Dialog, QDialog):
                             h_layout.addWidget(field)
                             fields.append(field)
 
-                    elif param.type == "xyz_point":
+                    elif param.type == ParamType.xyz_point:
                         # 经纬度和海拔输入框
                         for _ in range(3):
                             field = QLineEdit(self.groupBox_params)
@@ -157,7 +157,7 @@ class TestRunner(Ui_Dialog, QDialog):
                             h_layout.addWidget(field)
                             fields.append(field)
 
-                    elif param.type == "z":
+                    elif param.type == ParamType.z:
                         # 海拔输入框
                         field = QLineEdit(self.groupBox_params)
                         field.setValidator(double_validator)
@@ -195,9 +195,9 @@ class TestRunner(Ui_Dialog, QDialog):
                 else:
                     # 创建输入框
                     input_field = QLineEdit(self.groupBox_params)
-                    if param.type in ["float"]:
+                    if param.type in [ParamType.float]:
                         input_field.setValidator(double_validator)
-                    elif param.type in ["int"]:
+                    elif param.type in [ParamType.int]:
                         input_field.setValidator(int_validator)
                     input_field.setText(str(param.value))
 
