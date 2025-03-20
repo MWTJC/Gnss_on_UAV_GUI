@@ -35,7 +35,7 @@ logger.info(sys.path)
 from PySideApp.Libs.test_runner import TestRunner
 from PySideApp.Libs.test_tasks_lib import TestTask, TestModule
 from PySideApp.Libs.TestModuleLib import get_all_test
-from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget
+from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget, SearchDict
 from PySideApp.Libs.settings_window import SettingsManager
 from PySideApp.Libs.map_server import LocalServer
 from PySideApp.pyui import MainWindowUI
@@ -217,7 +217,12 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         verticalLayout_func_box = QVBoxLayout(self.tab_new_task)
         self.lineEdit_func_box = QLineEdit(self.tab_new_task)
         self.lineEdit_func_box.setPlaceholderText('键入以搜索...')
+        self.lineEdit_func_box.setClearButtonEnabled(True)
+        self.lineEdit_func_box.textChanged.connect(self.search_func_box)
         verticalLayout_func_box.addWidget(self.lineEdit_func_box)
+        # 搜索用的容器
+        self.list_search_class:list[SearchDict] = []
+        self.flow_widgets_list:list[FlowWidget] = []
         # 主滚动背景层
         self.scrollArea_main_func_box = QScrollArea(self.tab_new_task)
         self.scrollArea_main_func_box.setWidgetResizable(True)
@@ -232,7 +237,18 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         )
 
-    @logger.catch
+
+    def search_func_box(self, text:str|None=None):
+        for item in self.list_search_class:
+            if item.button:
+                visible = item.matches(text)
+                item.button.setVisible(visible)
+            # 更新所有FlowWidget的布局
+            for flow_widget in self.flow_widgets_list:
+                flow_widget.updateVisibleWidgets()
+                flow_widget.update()
+
+
     def add_func_to_box(self):
         try:
             test_module_list = get_all_test()
@@ -258,13 +274,18 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
                 single_type,
             )
             self.bind_expand_button(block_button, flow_widget)
+            self.flow_widgets_list.append(flow_widget)
             for test_module in test_module_list:
                 if test_module.test_type in single_type:
                     # 添加功能并绑定
                     func_button = add_func_single(text=test_module.name, flow_widget=flow_widget)
                     self.bind_test_button(func_button, test_module)
+                    kwds = test_module.search_keywords
+                    kwds.append(test_module.name)
+                    self.list_search_class.append(SearchDict(kwds, func_button))
 
-    def bind_expand_button(self, button, flow_widget):
+
+    def bind_expand_button(self, button:QToolButton, flow_widget):
         def expand_handler():
             checked = button.isChecked()
             button.setArrowType(
@@ -272,6 +293,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             )
             flow_widget.setVisible(checked)
         button.clicked.connect(expand_handler)
+        button.triggered.connect(expand_handler)
+
 
     def bind_test_button(self, button, test_module:TestModule):
         def click_handler():
