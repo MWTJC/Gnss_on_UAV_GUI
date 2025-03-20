@@ -14,4 +14,5 @@ def get_all_test():
     return test_list
 
 if __name__ == "__main__":
-    print(get_all_test())
+    for i in get_all_test():
+        print(i.name)

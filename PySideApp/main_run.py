@@ -421,7 +421,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             if isinstance(item, QTabWidget):
                 item.setCurrentIndex(settings.value(f'{item.objectName()}TabIndex', 0, int))
 
-
+@logger.catch
 def main():
     app = QApplication(sys.argv)  # 实例化，传参
     loop = QEventLoop(app)
