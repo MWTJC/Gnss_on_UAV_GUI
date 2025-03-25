@@ -19,7 +19,7 @@ class TestRunner(Ui_Dialog, QDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh_timer_label)
         self.groupBox_params:QGroupBox|None = None
-        self.param_input_lineedit_list:list[QLineEdit]|None = None
+        self.param_input_lineedit_list:list[QLineEdit]|list[list[QLineEdit]]|None = None
 
     def bind_signal(self):
         self.pushButton_start_test.clicked.connect(self.test_start)
@@ -57,12 +57,24 @@ class TestRunner(Ui_Dialog, QDialog):
         param_list = []
         if self.param_input_lineedit_list:
             # 存储输入参数
-            for lineedit, param_class in zip(self.param_input_lineedit_list, self.test_module.get_input_list()):
-                param_value = lineedit.text()
-                if param_value in ['', None]:
-                    QMessageBox.warning(self, "警告", "请确认全部参数已输入...")
-                    return
-                param_class.set_value(lineedit.text())
+            input_list = self.test_module.get_input_list()
+            for lineedit, param_class in zip(self.param_input_lineedit_list, input_list):  # 对于单值参数
+                if param_class.type in [ParamType.float, ParamType.int]:
+                    param_value = lineedit.text()
+                    if param_value in ['', None]:
+                        QMessageBox.warning(self, "警告", "请确认全部参数已输入...")
+                        return
+                    param_class.set_value(lineedit.text())
+                elif param_class.type in [ParamType.xy_point, ParamType.xyz_point, ParamType.z]:  # 对于多值参数
+                    param_storage_list = []
+                    for param in lineedit:
+                        param_value = param.text()
+                        if param_value in ['', None]:
+                            QMessageBox.warning(self, "警告", "请确认全部参数已输入...")
+                            return
+                        param_storage_list.append(param.text())
+                    param_class.set_value(param_storage_list)
+                # 存储
                 param_list.append(param_class)
 
         self.tabWidget_test_runner.setTabEnabled(0, False)
@@ -128,7 +140,7 @@ class TestRunner(Ui_Dialog, QDialog):
             double_validator = QDoubleValidator()
             int_validator = QIntValidator()
             # 为每个输入参数创建控件
-            self.param_input_lineedit_list = []  # 记录输入函数框以方便取值
+            self.param_input_lineedit_list = []  # 记录输入函数框以防止空值并方便取值
             for index, param in enumerate(input_list):
                 # 创建标签
                 label = QLabel(self.groupBox_params)
@@ -190,7 +202,7 @@ class TestRunner(Ui_Dialog, QDialog):
                     location_btn.clicked.connect(create_toggle_handler(location_btn, fields))
                     h_layout.addWidget(location_btn)
 
-                    self.param_input_lineedit_list.extend(fields)
+                    self.param_input_lineedit_list.append(fields)  # 独立一个list记录特殊参数
 
                 else:
                     # 创建输入框
