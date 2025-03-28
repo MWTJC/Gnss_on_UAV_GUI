@@ -299,7 +299,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
     def bind_test_button(self, button, test_module:TestModule):
         def click_handler():
             uuid = int(time.strftime('%Y%m%d%H%M%S', time.localtime(time.time())))
-            self.test_runner.set_test_info(uuid, test_module)
+            self.test_runner.set_test_info(uuid=uuid, module=test_module)
             self.test_runner.show()
         button.clicked.connect(click_handler)
 
@@ -356,17 +356,17 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             )
             detail_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
 
-            # 计算按钮
-            run_caculate_btn = QToolButton()
-            run_caculate_btn.setText("计算")
-            run_caculate_btn.setIcon(
-                QIcon(QIcon.fromTheme(u"accessories-calculator"))
-            )
-            run_caculate_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
+            # # 计算按钮
+            # run_caculate_btn = QToolButton()
+            # run_caculate_btn.setText("计算")
+            # run_caculate_btn.setIcon(
+            #     QIcon(QIcon.fromTheme(u"accessories-calculator"))
+            # )
+            # run_caculate_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
 
             # 将按钮添加到布局中
             widget.addWidget(detail_btn)
-            widget.addWidget(run_caculate_btn)
+            # widget.addWidget(run_caculate_btn)
             widget.addWidget(delete_btn)
 
             # 将按钮容器设置到表格中
@@ -378,6 +378,9 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
     def show_detail(self, row):
         print(f"显示第 {row + 1} 行的详情")
+        task: TestTask = self.task_history_list[row]
+        self.test_runner.set_test_info(history_task=task)
+        self.test_runner.show()
 
     def init_settings_manager(self):
         # 定义需要保存状态的部件

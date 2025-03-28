@@ -5,7 +5,7 @@ from PySide6.QtGui import QDoubleValidator, QIntValidator, Qt
 from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox, QPushButton
 
 from PySideApp.Libs.TestModuleLib import GBT38058_2019
-from PySideApp.Libs.test_tasks_lib import TestModule, ParamType
+from PySideApp.Libs.test_tasks_lib import TestModule, ParamType, TestTask
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
 
@@ -119,12 +119,23 @@ class TestRunner(Ui_Dialog, QDialog):
         self.tabWidget_test_runner.setTabEnabled(1, False)
         self.tabWidget_test_runner.setTabEnabled(2, False)
 
-    def set_test_info(self, uuid:int, module:TestModule|GBT38058_2019.T6_4_5):
+    def set_test_info(self, uuid:int=None,
+                      module:TestModule|GBT38058_2019.T6_4_5=None,
+                      history_task:TestTask=None
+                      ):
         self.test_module = module
         self.reset_ui()
+        if not uuid:
+            uuid = history_task.id
         self.lineEdit_uuid.setText(str(uuid))
         self.lineEdit_uuid.setDisabled(True)
-        self.lineEdit_calculate_item.setText(str(module.name))
+
+        if module:
+            name = module.name
+        else:
+            name = history_task.name
+            self.textEdit_mark.setText(history_task.note)
+        self.lineEdit_calculate_item.setText(str(name))
         self.lineEdit_calculate_item.setDisabled(True)
 
         # 创建一个新的 GroupBox 用于容纳参数输入控件
@@ -135,7 +146,12 @@ class TestRunner(Ui_Dialog, QDialog):
         self.formLayout_params.setVerticalSpacing(9)
 
         # 插入参数
-        input_list = self.test_module.get_input_list()
+        if self.test_module:  # 新建检测的情况
+            input_list = self.test_module.get_input_list()
+        else:  # 历史浏览的情况
+            if not history_task:
+                raise "非法输入参数"
+            input_list = history_task.input_param_list
         if len(input_list) > 0:
             double_validator = QDoubleValidator()
             int_validator = QIntValidator()
@@ -155,17 +171,19 @@ class TestRunner(Ui_Dialog, QDialog):
 
                     if param.type == ParamType.xy_point:
                         # 经纬度输入框
-                        for _ in range(2):
+                        for i in range(2):
                             field = QLineEdit(self.groupBox_params)
                             field.setValidator(double_validator)
+                            field.setText(str(param.value[i]))
                             h_layout.addWidget(field)
                             fields.append(field)
 
                     elif param.type == ParamType.xyz_point:
                         # 经纬度和海拔输入框
-                        for _ in range(3):
+                        for i in range(3):
                             field = QLineEdit(self.groupBox_params)
                             field.setValidator(double_validator)
+                            field.setText(str(param.value[i]))
                             h_layout.addWidget(field)
                             fields.append(field)
 
@@ -173,6 +191,7 @@ class TestRunner(Ui_Dialog, QDialog):
                         # 海拔输入框
                         field = QLineEdit(self.groupBox_params)
                         field.setValidator(double_validator)
+                        field.setText(str(param.value[0]))
                         h_layout.addWidget(field)
                         fields.append(field)
 
