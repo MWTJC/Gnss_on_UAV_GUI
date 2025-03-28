@@ -26,7 +26,7 @@ class TestStep:
         self.timestamp_end = timestamp_end
 
 class TestParamInput:
-    def __init__(self, param_name:str, param_value:float|int, unit='', data_type:ParamType=ParamType.float):
+    def __init__(self, param_name:str, param_value:ParamType|list[ParamType], unit='', data_type:ParamType=ParamType.float):
         """
         data_type可选值见TestParamInputType定义
         """
