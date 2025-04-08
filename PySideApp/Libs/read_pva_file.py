@@ -1,22 +1,20 @@
 import struct
 import binascii
-
 from loguru import logger
 
 
 class PVAPacket:
     def __init__(self):
         # 帧头
-        self.header_protocol = None  # 协议 (AC)
-        self.header_seq = None  # 字节序号 (0)
-
-        # 数据体
-        self.byte1 = None  # 1 (55)
-        self.byte2 = None  # 2 (96)
-        self.byte3 = None  # 3 (83)
+        self.byte0 = None  # (AC)
+        self.byte1 = None  # (55)
+        self.byte2 = None  # (96)
+        self.byte3 = None  # (83)
         self.protocol_type = None  # 4-5 协议类型
         self.reserved1 = None  # 6-7 保留位
         self.data_length = None  # 8-11 数据长度
+
+        # 数据体
         self.info_id = None  # 12-13 信息ID
         self.payload_length = None  # 14-15 数据内容长度
         self.time_status = None  # 16-17 时间状态
@@ -49,20 +47,20 @@ class PVAPacket:
 
         # 校验
         self.crc = None  # 154-157 32位CRC校验
+        self.crc_valid = None
 
     def __str__(self):
         """返回报文的可读字符串表示"""
         return (
             f"PVA数据报文:\n"
-            f"帧头: 协议={self.header_protocol}, 序号={self.header_seq}\n"
-            f"数据: 字节1-3={self.byte1},{self.byte2},{self.byte3}\n"
+            f"帧头: {hex(self.byte0)},{hex(self.byte1)},{hex(self.byte2)},{hex(self.byte3)}\n"
             f"协议类型: {self.protocol_type}\n"
             f"数据长度: {self.data_length}\n"
             f"信息ID: {self.info_id}\n"
-            f"位置信息: 纬度={self.latitude}°, 经度={self.longitude}°, 海拔={self.altitude}米\n"
+            f"位置信息: 纬度={self.latitude}°, 经度={self.longitude}°, 海拔={self.altitude}m\n"
             f"速度信息: 北向={self.north_velocity}m/s, 东向={self.east_velocity}m/s, 天向={self.up_velocity}m/s\n"
             f"姿态信息: 横滚={self.roll}°, 俯仰={self.pitch}°, 航向={self.heading}°\n"
-            f"CRC校验: {hex(self.crc) if self.crc is not None else None}\n"
+            f"CRC校验: {hex(self.crc) if self.crc is not None else None}, {"通过" if self.crc_valid else "不通过"}\n"
         )
 
 
@@ -75,6 +73,9 @@ def find_packet_start(data, start_pos=0):
     pos = data.find(pattern, start_pos)
     return pos
 
+def calculate_crc32(data):
+    """计算CRC32校验值"""
+    return binascii.crc32(data, 0xFFFFFFFF) ^ 0xFFFFFFFF
 
 def parse_packet(data, offset=0):
     """解析单个PVA报文"""
@@ -84,7 +85,7 @@ def parse_packet(data, offset=0):
     packet = PVAPacket()
 
     # 解析帧头
-    packet.header_protocol = data[offset]  # AC
+    packet.byte0 = data[offset]  # AC
     packet.byte1 = data[offset + 1]  # 55
     packet.byte2 = data[offset + 2]  # 96
     packet.byte3 = data[offset + 3]  # 83
@@ -129,7 +130,10 @@ def parse_packet(data, offset=0):
 
     # 解析CRC校验
     packet.crc = struct.unpack('<L', data[offset + 154:offset + 158])[0]
-    return packet, offset + 158  # 返回解析的报文、新的偏移量和校验结果
+    calculated_crc = calculate_crc32(data[offset:offset + 154])
+    is_valid = (calculated_crc == packet.crc)
+    packet.crc_valid = is_valid
+    return packet, offset + 158, is_valid  # 返回解析的报文、新的偏移量和校验结果
 
 
 def parse_pva_file(file_path, max_packets=None):
@@ -143,7 +147,7 @@ def parse_pva_file(file_path, max_packets=None):
     返回:
         解析的报文列表
     """
-    packets = []
+    packets:list[PVAPacket] = []
 
     try:
         with open(file_path, 'rb') as f:
@@ -162,7 +166,7 @@ def parse_pva_file(file_path, max_packets=None):
             packet, new_offset, is_valid = parse_packet(data, offset)
 
             if packet:
-                packets.append((packet, is_valid))
+                packets.append(packet)
                 offset = new_offset
                 packet_count += 1
 
@@ -174,28 +178,29 @@ def parse_pva_file(file_path, max_packets=None):
 
     except Exception as e:
         logger.error(f"解析文件时出错: {e}")
+        raise
 
     return packets
 
-
+@logger.catch()
 def main():
     # 使用示例
-    file_path = "pva/d0000006.txt"
-
+    file_path = "../proj_file/d0000006.txt"
 
     logger.info(f"开始解析文件 {file_path}...")
     packets = parse_pva_file(file_path)
 
-    logger.success(f"成功解析 {len(packets)} 个报文")
-
     # 输出解析结果
-    for i, (packet, is_valid) in enumerate(packets):
-        logger.info(f"\n报文 #{i + 1} {'(校验通过)' if is_valid else '(校验失败)'}")
+    for i, packet in enumerate(packets):
+        logger.info(f"\n报文 #{i + 1} ")
         logger.info(packet)
 
-    # 统计校验通过的报文数量
-    valid_packets = sum(1 for _, is_valid in packets if is_valid)
-    logger.info(f"\n校验通过: {valid_packets}/{len(packets)}")
+    logger.success(f"成功解析 {len(packets)} 个报文")
+    i = 0
+    for p in packets:
+        if p.crc_valid:
+            i+=1
+    logger.success(f'校验通过 {i}/{len(packets)}')
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from natsort import natsorted
 from PySide6.QtWebChannel import QWebChannel
 from loguru import logger
 from PySide6 import QtCore
-from PySide6.QtCore import Signal, QSettings, QUrl
+from PySide6.QtCore import Signal, QSettings, QUrl, Slot
 from PySide6.QtGui import QPixmap, QIcon, Qt
 from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
     QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QTableWidgetItem, \
@@ -38,6 +38,7 @@ from PySideApp.Libs.TestModuleLib import get_all_test
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget, SearchDict
 from PySideApp.Libs.settings_window import SettingsManager
 from PySideApp.Libs.map_server import LocalServer
+from PySideApp.Libs.settings_serial import SerialAssistant
 from PySideApp.pyui import MainWindowUI
 
 def custom_excepthook(exc_type, exc_value, exc_traceback):
@@ -69,6 +70,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         super().__init__()
         self.error = False
         self.current_proj_path:Path|None = None
+        self.serial_dialog: SerialAssistant|None = None
         self.setupUi(self)
         self.loop = asyncio.get_event_loop()  # 异步loop取得
         self.init_main_parts()
@@ -78,6 +80,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
     def init_main_parts(self):  # 目前无法异步，因为涉及类的初始化，使用异步需要大改
         # 初始化设置管理器
         self.init_settings_manager()
+        # 初始化串口部分
+        self.init_serial()
         # 初始化表格组件
         self.init_table_widget()
         # 初始化功能盒
@@ -86,6 +90,16 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.init_test_runner()
         # 初始化地图
         self.init_map()
+
+    def open_serial_dialog(self):
+        if self.serial_dialog is None:
+            self.serial_dialog = SerialAssistant()
+            self.serial_dialog.set_status_button(self.pushButton_serial_status)
+        self.serial_dialog.show()
+
+
+    def init_serial(self):
+        self.actionConnectSerial.triggered.connect(self.open_serial_dialog)
 
     def init_map(self):
         self.map_server = LocalServer(port=28000, dir=MAP_HTML_DIR)
@@ -98,7 +112,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.web_bridge.ruler_end_callback = self.map_ruler_end
         self.web_channel.registerObject("web_bridge", self.web_bridge)
         self.map_page.setWebChannel(self.web_channel)
-        self.webEngineView_map.setUrl('http://localhost:28000')
+        # self.webEngineView_map.setUrl('http://localhost:28000')
+        self.webEngineView_map.setUrl('http://localhost:5173')
         self.toolButton_map_ruler.clicked.connect(self.map_call_ruler)
         self.toolButton_map_read_raw.clicked.connect(self.map_read_raw)
 
@@ -124,14 +139,17 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         """
         self.toolButton_map_ruler.setChecked(False)
 
+
     def map_call_ruler(self):
         """
         召唤或者关闭尺子
         """
         if self.toolButton_map_ruler.isChecked():
-            self.map_page.runJavaScript("openDistance();")
+            # self.map_page.runJavaScript("openDistance();")
+            self.map_page.runJavaScript("window.vueBridge.openDistance();")
         else:
-            self.map_page.runJavaScript("closeDistance();")
+            # self.map_page.runJavaScript("closeDistance();")
+            self.map_page.runJavaScript("window.vueBridge.closeDistance();")
 
     def refresh_map(self):
         """
@@ -208,6 +226,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             with open(fname, 'rb') as f:
                 self.task_history_list = pickle.load(f)
                 self.refresh_fill_table_data()
+                self.tabWidget.setCurrentIndex(0)
+                self.statusbar.showMessage(f'已载入{fname}', 3000)
         else:
             logger.warning('取消打开...')
             return

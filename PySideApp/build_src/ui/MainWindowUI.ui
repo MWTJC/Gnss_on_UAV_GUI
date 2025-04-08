@@ -408,7 +408,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>148</width>
+          <width>149</width>
           <height>421</height>
          </rect>
         </property>
@@ -434,13 +434,6 @@
             <widget class="QLabel" name="label_connect_status">
              <property name="text">
               <string>连接状态：</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLabel" name="label_connect_status_value">
-             <property name="text">
-              <string>TextLabel</string>
              </property>
             </widget>
            </item>
@@ -528,6 +521,13 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="pushButton_serial_status">
+             <property name="text">
+              <string>PushButton</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
         </layout>
@@ -604,7 +604,10 @@
     <iconset theme="emblem-symbolic-link"/>
    </property>
    <property name="text">
-    <string>连接串口</string>
+    <string>串口设置</string>
+   </property>
+   <property name="toolTip">
+    <string>串口设置</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

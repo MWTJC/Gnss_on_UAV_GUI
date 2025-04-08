@@ -105,9 +105,65 @@ li.checked::marker { content: &quot;\2612&quot;; }
           </spacer>
          </item>
          <item>
+          <widget class="QPushButton" name="pushButton_load_file">
+           <property name="text">
+            <string>载入本地文件</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="pushButton_start_test">
            <property name="text">
             <string>开始测试</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_localfile">
+      <attribute name="title">
+       <string>文件概况</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QGroupBox" name="groupBox_info_localfile">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>信息</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QTextEdit" name="textEdit_info"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <spacer name="horizontalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_calcu_file">
+           <property name="text">
+            <string>计算</string>
            </property>
           </widget>
          </item>
@@ -285,7 +341,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </widget>
      <widget class="QWidget" name="tab_test_over">
       <attribute name="title">
-       <string>完成测试</string>
+       <string>完成</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>

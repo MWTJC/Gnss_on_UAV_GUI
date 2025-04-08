@@ -13,6 +13,7 @@ dependencies = [
     "qasync",
     "pandas>=2.2.3",
     "natsort>=8.4.0",
+    "aioserial>=1.3.1",
 ]
 requires-python = "<=3.13,>=3.10"
 readme = "README.md"
