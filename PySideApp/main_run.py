@@ -19,8 +19,7 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
     QToolButton, QFileDialog
 from qasync import QEventLoop
 
-from PySideApp.Libs.map_webchannel import WebHandler
-from PySideApp.Libs.nmea_decode import parse_and_convert_GP
+from PySideApp.Libs.read_pva_file import PVAPacket, gps_to_datetime
 
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 os.environ["QT_API"] = "PySide6"
@@ -90,12 +89,38 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         self.init_test_runner()
         # 初始化地图
         self.init_map()
+        # 初始化主窗口状态显示
+        self.display_online_info(None, False, reset=True)
 
     def open_serial_dialog(self):
         if self.serial_dialog is None:
             self.serial_dialog = SerialAssistant()
             self.serial_dialog.set_status_button(self.pushButton_serial_status)
+            self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.serial_dialog.show()
+
+    def display_online_info(self, package:PVAPacket|None, gnss_ok:bool, reset=False):
+        if reset:
+            self.pushButton_serial_status.setText("-")
+            self.label_gnss_status_value.setText("-")
+            self.label_device_time_value.setText("-")
+            return
+        if package is None:
+            self.pushButton_serial_status.setText("异常")
+            return
+        self.label_gnss_status_value.setText(f"{"良好"if gnss_ok else"否"}")
+        self.label_device_time_value.setText(f"{gps_to_datetime(package.gps_week, package.gps_week_seconds).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} UTC")
+        self.label_longitude_online.setText(f"{package.longitude:03.15f}°")
+        self.label_latitude_online.setText(f"{package.latitude:03.15f}°")
+        self.label_height_online.setText(f"{package.altitude:0.3f}m")
+        self.label_speed_east_online.setText(f"{package.east_velocity:0.3f}m/s")
+        self.label_speed_north_online.setText(f"{package.north_velocity:0.3f}m/s")
+        self.label_speed_sky_online.setText(f"{package.up_velocity:0.3f}m/s")
+        self.label_angle_roll_online.setText(f"{package.roll:0.3f}°")
+        self.label_angle_pitch_online.setText(f"{package.pitch:0.3f}°")
+        self.label_angle_yaw_online.setText(f"{package.heading:0.3f}°")
+        self.label_velocity2d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2)**0.5:0.3f}m/s")
+        self.label_velocity3d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2+package.up_velocity**2)**0.5:0.3f}m/s")
 
 
     def init_serial(self):
