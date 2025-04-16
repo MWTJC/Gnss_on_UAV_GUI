@@ -2,9 +2,12 @@ import time
 
 from PySide6.QtCore import Signal, QTimer
 from PySide6.QtGui import QDoubleValidator, QIntValidator, Qt
-from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox, QPushButton
+from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayout, QGroupBox, QMessageBox, QPushButton, \
+    QFileDialog
+from loguru import logger
 
 from PySideApp.Libs.TestModuleLib import GBT38058_2019
+from PySideApp.Libs.read_pva_file import parse_pva_file
 from PySideApp.Libs.test_tasks_lib import TestModule, ParamType, TestTask
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
@@ -27,19 +30,52 @@ class TestRunner(Ui_Dialog, QDialog):
         self.pushButton_prev_step.clicked.connect(self.test_prev_step)
         self.pushButton_redo_step.clicked.connect(self.test_redo_step)
         self.pushButton_finish.clicked.connect(self.test_finished)
+        self.pushButton_load_file.clicked.connect(self.read_local_PVA_file)
+
+    def read_local_PVA_file(self):
+        fname, ftype = QFileDialog.getOpenFileName(
+            self, "打开录制文件...", "",
+            "txt文件(*.txt);;hex文件(*.DAT)",
+        )
+        if fname:
+            logger.info(f"开始解析文件 {fname}...")
+            packets, valid_count, offset_count = parse_pva_file(fname)
+            if len(packets) == 0:
+                logger.warning("未解析到任何报文")
+                QMessageBox.warning(self, "警告", "未能解析到任何报文，请确认载入了正确的hex文件...")
+                return
+            else:
+                logger.success(f"解析了{len(packets)}条PVA, 通过{valid_count}条, 跳跃{offset_count}次")
+        else:
+            logger.warning('取消打开...')
+            return
+        self.tabWidget_test_runner.setTabEnabled(1, True)
+        self.tabWidget_test_runner.setCurrentIndex(1)
+        self.textEdit_info.clear()
+        md_text = (f"## 文件名\n"
+                   f"{fname}\n"
+                   f"## 总条数\n"
+                   f"{len(packets)}\n"
+                   f"## CRC通过\n"
+                   f"{valid_count}\n"
+                   f"## 跳跃次数\n"
+                   f"{offset_count}\n"
+                   f"- 跳跃次数应为0，否则可能存在损坏片段")
+        self.textEdit_info.setMarkdown(md_text)
+
 
     def refresh_timer_label(self, to_zero=False):
-        if not self.timer_var or to_zero:
-            self.timer_var = time.time()
+            if not self.timer_var or to_zero:
+                self.timer_var = time.time()
 
-        time_now = time.time()
-        seconds = time_now-self.timer_var
-        # 分离整数秒和小数部分
-        seconds = int(seconds)  # 获取整数秒部分
-        # 计算时、分、秒
-        minutes = (seconds % 3600) // 60
-        seconds = seconds % 60
-        self.label_timer.setText(f"{int(minutes):02d}:{int(seconds):02d}")
+            time_now = time.time()
+            seconds = time_now-self.timer_var
+            # 分离整数秒和小数部分
+            seconds = int(seconds)  # 获取整数秒部分
+            # 计算时、分、秒
+            minutes = (seconds % 3600) // 60
+            seconds = seconds % 60
+            self.label_timer.setText(f"{int(minutes):02d}:{int(seconds):02d}")
 
     def test_next_step(self):
         self.test_module.test_task.next_step()
@@ -78,7 +114,7 @@ class TestRunner(Ui_Dialog, QDialog):
                 param_list.append(param_class)
 
         self.tabWidget_test_runner.setTabEnabled(0, False)
-        self.tabWidget_test_runner.setTabEnabled(1, True)
+        self.tabWidget_test_runner.setTabEnabled(2, True)
         self.tabWidget_test_runner.setCurrentWidget(self.tab_test_runner)
         a = self.textEdit_mark.toPlainText()
         self.test_module.init_test_task(
@@ -106,6 +142,7 @@ class TestRunner(Ui_Dialog, QDialog):
 
     def reset_ui(self):
         self.param_input_lineedit_list = None  # 清空防止误用
+        self.resize(50, 50)  # 重设窗口大小
         if self.groupBox_params:
             self.groupBox_params.deleteLater()
         self.lineEdit_uuid.clear()
@@ -118,6 +155,7 @@ class TestRunner(Ui_Dialog, QDialog):
         self.tabWidget_test_runner.setTabEnabled(0, True)
         self.tabWidget_test_runner.setTabEnabled(1, False)
         self.tabWidget_test_runner.setTabEnabled(2, False)
+        self.tabWidget_test_runner.setTabEnabled(3, False)
 
     def set_test_info(self, uuid:int=None,
                       module:TestModule|GBT38058_2019.T6_4_5=None,
@@ -262,8 +300,8 @@ class TestRunner(Ui_Dialog, QDialog):
     def test_finished(self):
         self.timer.stop()
         self.tabWidget_test_runner.setTabEnabled(0, False)
-        self.tabWidget_test_runner.setTabEnabled(1, False)
-        self.tabWidget_test_runner.setTabEnabled(2, True)
+        self.tabWidget_test_runner.setTabEnabled(2, False)
+        self.tabWidget_test_runner.setTabEnabled(3, True)
         self.tabWidget_test_runner.setCurrentWidget(self.tab_test_over)
         self.signal_test_over.emit()
 
