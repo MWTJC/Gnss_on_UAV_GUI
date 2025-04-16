@@ -9,13 +9,20 @@ import serial.tools.list_ports
 from PySide6 import QtCore
 from PySide6.QtWidgets import QMessageBox, QApplication, QWidget, QPushButton
 
+from PySideApp.Libs.read_pva_file import parse_packet, PVAPacket
 from PySideApp.pyui.SerialSettingsUi import Ui_Form
+
 
 
 @asyncSlot()
 async def read_and_print(aioserial_instance: aioserial.AioSerial):
     while True:
-        print((await aioserial_instance.read_async()).decode(errors='ignore'), end='', flush=True)
+        print((await aioserial_instance.read_async(size=158)).decode(errors='ignore'), end='', flush=True)
+
+@asyncSlot()
+async def read_pva_hex(aioserial_instance: aioserial.AioSerial, callback):
+    while True:
+        callback(await aioserial_instance.read_async(size=158))
 
 @asyncSlot()
 async def read_gpgga_to_list(aioserial_instance: aioserial.AioSerial, list_storage: list):
@@ -25,7 +32,7 @@ async def read_gpgga_to_list(aioserial_instance: aioserial.AioSerial, list_stora
 @asyncSlot()
 async def read_hex_(aioserial_instance: aioserial.AioSerial):
     while True:
-        print((await aioserial_instance.read_async()), end='', flush=True)
+        print((await aioserial_instance.read_async(size=158)).hex(), end='\n', flush=True)
 
 class SerialAssistant(QWidget, Ui_Form):
     def __init__(self):
@@ -51,6 +58,11 @@ class SerialAssistant(QWidget, Ui_Form):
         # 多进程共享变量管理
         self.manager = Manager()
         # self.data_storage.command_status = self.manager.list()
+        # 数据包回传主界面回调
+        self.package_send_callback = None
+
+    def set_package_send_callback(self, callback):
+        self.package_send_callback = callback
 
     def set_status_button(self, button:QPushButton):
         self.pushButton_serial_status = button
@@ -97,6 +109,50 @@ class SerialAssistant(QWidget, Ui_Form):
                                                 + ';}')
             self.pushButton_serial_status.setText("停止异常")
 
+    def hex_to_display(self, content: bytes):
+        packet, offset, is_valid = parse_packet(content)
+        packet: PVAPacket
+        gps_week_seconds = packet.gps_week_seconds
+        time_status = True if packet.time_status == 180 else False
+        combined_status = True if packet.combined_status == 3 else False
+        position_type = True if packet.position_type == 56 else False
+        # ext_status = packet.ext_status.encode('hex')
+        ext_status = f"0x{packet.ext_status:08X}"
+
+        # 检查特定位
+        for bit_num, mask, description in [
+            (0, 0x00000001, "Position Update"),
+            (1, 0x00000002, "Phase Update"),
+            (2, 0x00000004, "Zero Velocity Update"),
+            (3, 0x00000008, "Wheel Sensor Update"),
+            (4, 0x00000010, "ALIGN (heading) Update"),
+            (5, 0x00000020, "External Position Update"),
+            (6, 0x00000040, "INS Solution Convergence Flag")
+        ]:
+            is_set = bool(packet.ext_status & mask)
+            status = "Used" if is_set else "Unused"
+            if bit_num == 6:
+                status = "收敛" if is_set else "未收敛"
+        md_text = (
+            "## 实时概况\n"
+            "### gnss秒：\n"
+            f"{gps_week_seconds}\n"
+            "### 时间状态：\n"
+            f"{packet.time_status:02X}, {time_status}\n"
+            "### 组合状态：\n"
+            f"{packet.combined_status:02X}, {combined_status}\n"
+            "### 固定解：\n"
+            f"{packet.position_type:02X}, {position_type}\n"
+            "### 拓展字状态：\n"
+            f"{ext_status}, 第六位：{status}\n"
+        )
+        self.textEdit_serial_details.setMarkdown(md_text)
+        if self.package_send_callback:
+            self.package_send_callback(
+                package=packet,
+                gnss_ok=time_status is True and combined_status is True and position_type is True  # 状态良好
+            )
+
 
     def display_data(self):
         # 设置状态，目前区分为：灰色，停止，绿色，正常运作， 黄色，正在自适应调节，红色，丢包，需要重开
@@ -120,7 +176,9 @@ class SerialAssistant(QWidget, Ui_Form):
         ])
         # 波特率 下拉菜单
         self.comboBox_baud.addItems(['100', '300', '600', '1200', '2400', '4800', '9600', '14400', '19200',
-                                     '38400', '56000', '57600', '115200', '128000', '256000'])
+                                     '38400', '56000', '57600', '115200',
+                                     '128000', '256000', '460800', '500000', '512000', '600000',
+                                     '750000', '921600', '1000000', '1500000', '2000000'])
         self.comboBox_baud.setCurrentIndex(12)
         # 数据位 下拉菜单
         self.comboBox_data_bit.addItems(['8', '7', '6', '5'])
@@ -189,8 +247,10 @@ class SerialAssistant(QWidget, Ui_Form):
                 self.progressBar_status_port.setValue(1)
                 # self.set_setting_enable(False)
                 self.groupBox_serial_sett.setEnabled(False)
-            loop = asyncio.get_running_loop()
-            loop.run_until_complete(read_and_print(self.ser))
+            # asyncio.ensure_future(read_and_print(self.ser))
+            # asyncio.ensure_future(read_hex_(self.ser))
+            asyncio.ensure_future(read_pva_hex(self.ser, self.hex_to_display))
+
 
         # 按打开串口按钮 但 没有读取到串口
         elif (self.pushButton_open_serial.text() == '开串口') and (self.comboBox_port_choose.currentText() == '无串口'):
