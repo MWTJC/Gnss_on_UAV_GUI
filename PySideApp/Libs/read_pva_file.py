@@ -1,7 +1,32 @@
 import struct
 import binascii
+from datetime import datetime, timedelta
+
+import pytz
 from loguru import logger
 
+
+def gps_to_datetime(gps_week, gps_seconds):
+    """
+    将GPS时间（GPS周和周内秒）转换为UTC日期时间
+
+    参数:
+        gps_week (int): GPS周数
+        gps_seconds (float): GPS周内秒数（可包含毫秒）
+
+    返回:
+        datetime: 对应的UTC日期时间对象
+    """
+    # GPS起始时间: 1980-01-06 00:00:00 UTC
+    gps_epoch = datetime(1980, 1, 6, 0, 0, 0, tzinfo=pytz.UTC)
+
+    # 计算从GPS起始时间到当前GPS时间的时间间隔
+    delta = timedelta(weeks=gps_week, seconds=gps_seconds / 1000)  # 毫秒转换为秒
+
+    # 计算对应的UTC时间
+    utc_time = gps_epoch + delta
+
+    return utc_time
 
 class PVAPacket:
     def __init__(self):
@@ -17,12 +42,12 @@ class PVAPacket:
         # 数据体
         self.info_id = None  # 12-13 信息ID
         self.payload_length = None  # 14-15 数据内容长度
-        self.time_status = None  # 16-17 时间状态
+        self.time_status = None  # 16-17 时间状态 重要 十进制应为180 hex为B4
         self.gps_week = None  # 18-19 GPS周
         self.gps_week_seconds = None  # 20-23 GPS周内秒
         self.reserved2 = None  # 24-27 保留位
-        self.combined_status = None  # 28-31 组合状态
-        self.position_type = None  # 32-35 定位类型
+        self.combined_status = None  # 28-31 组合状态 重要 工作良好应为03
+        self.position_type = None  # 32-35 定位类型 重要 固定解对应十进制56 hex为38
         self.latitude = None  # 36-43 纬度
         self.longitude = None  # 44-51 经度
         self.altitude = None  # 52-59 海拔高
@@ -42,7 +67,7 @@ class PVAPacket:
         self.roll_std = None  # 136-139 横滚自评估偏差
         self.pitch_std = None  # 140-143 俯仰自评估偏差
         self.heading_std = None  # 144-147 航向自评估偏差
-        self.ext_status = None  # 148-151 扩展状态字
+        self.ext_status = None  # 148-151 扩展状态字 重要
         self.pos_update_time = None  # 152-153 自位置更新以来的时间
 
         # 校验
@@ -80,7 +105,7 @@ def calculate_crc32(data):
 def parse_packet(data, offset=0):
     """解析单个PVA报文"""
     if len(data) - offset < 158:  # 确保数据长度足够
-        return None, offset
+        return None, offset, False
 
     packet = PVAPacket()
 
@@ -152,10 +177,10 @@ def parse_pva_file(file_path, max_packets=None):
     try:
         with open(file_path, 'rb') as f:
             data = f.read()
-
         offset = 0
         packet_count = 0
-
+        offset_count = 0
+        valid_count = 0
         while offset < len(data):
             # 查找报文开始位置
             start_pos = find_packet_start(data, offset)
@@ -169,38 +194,35 @@ def parse_pva_file(file_path, max_packets=None):
                 packets.append(packet)
                 offset = new_offset
                 packet_count += 1
+                if is_valid:
+                    valid_count += 1
 
                 if max_packets and packet_count >= max_packets:
                     break
             else:
                 # 如果解析失败，尝试下一个位置
                 offset += 1
+                offset_count += 1
 
     except Exception as e:
         logger.error(f"解析文件时出错: {e}")
         raise
 
-    return packets
+    logger.success(f"解码 {offset}/{len(data)}")
+    return packets, valid_count, offset_count
 
 @logger.catch()
 def main():
     # 使用示例
-    file_path = "../proj_file/d0000006.txt"
+    file_path = "../proj_file/SAVE2025_4_10_13-58-28.DAT"
 
     logger.info(f"开始解析文件 {file_path}...")
-    packets = parse_pva_file(file_path)
-
-    # 输出解析结果
-    for i, packet in enumerate(packets):
-        logger.info(f"\n报文 #{i + 1} ")
-        logger.info(packet)
+    packets, v, o = parse_pva_file(file_path)
 
     logger.success(f"成功解析 {len(packets)} 个报文")
-    i = 0
-    for p in packets:
-        if p.crc_valid:
-            i+=1
-    logger.success(f'校验通过 {i}/{len(packets)}')
+    logger.success(f'校验通过 {v}/{len(packets)}')
+    logger.success(f"跳跃{o}次")
+
 
 
 if __name__ == "__main__":
