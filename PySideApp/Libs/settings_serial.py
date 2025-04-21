@@ -114,8 +114,54 @@ class SerialAssistant(QWidget, Ui_Form):
         packet: PVAPacket
         gps_week_seconds = packet.gps_week_seconds
         time_status = True if packet.time_status == 180 else False
+        time_status_text = "<font color='yellow'>未知</font>"
+        if packet.time_status==20:
+            pass
+        elif packet.time_status==100:
+            time_status_text = "<font color='yellow'>粗精度</font>"
+        elif packet.time_status==180:
+            time_status_text = "<font color='green'>高精度</font>"
         combined_status = True if packet.combined_status == 3 else False
+        combined_status_text = "<font color='yellow'>未知</font>"
+        if packet.combined_status==0:
+            combined_status_text = "<font color='red'>未工作</font>"
+        elif packet.combined_status==1:
+            combined_status_text = "<font color='yellow'>正在对准</font>"
+        elif packet.combined_status == 2:
+            combined_status_text = "<font color='yellow'>组合但偏差大，疑似GNSS信号差</font>"
+        elif packet.combined_status == 3:
+            combined_status_text = "<font color='green'>良好</font>"
+        elif packet.combined_status == 6:
+            combined_status_text = "<font color='orange'>组合，但GNSS结果可能有误</font>"
+        elif packet.combined_status == 7:
+            combined_status_text = "<font color='orange'>对准完成，需机动以提升精度</font>"
+        elif packet.combined_status == 8:
+            combined_status_text = "<font color='orange'>轴系稳定中</font>"
+        elif packet.combined_status == 9:
+            combined_status_text = "<font color='orange'>等待初始位置</font>"
+        elif packet.combined_status == 10:
+            combined_status_text = "<font color='orange'>等待航向</font>"
+        elif packet.combined_status == 11:
+            combined_status_text = "<font color='orange'>静止评估中</font>"
+        elif packet.combined_status == 12:
+            combined_status_text = "<font color='orange'>未对准，有运动</font>"
+
         position_type = True if packet.position_type == 56 else False
+        position_type_text="<font color='orange'>未知</font>"
+        if packet.position_type == 0:
+            position_type_text = "<font color='red'>未解算</font>"
+        elif packet.position_type == 16:
+            position_type_text = "<font color='red'>单点解</font>"
+        elif packet.position_type == 32:
+            position_type_text = "<font color='red'>L1浮点解</font>"
+        elif packet.position_type == 48:
+            position_type_text = "<font color='red'>L1固定解</font>"
+        elif packet.position_type == 53:
+            position_type_text = "<font color='orange'>组合单点解</font>"
+        elif packet.position_type == 55:
+            position_type_text = "<font color='orange'>组合浮点解</font>"
+        elif packet.position_type == 56:
+            position_type_text = "<font color='green'>组合固定解</font>"
         # ext_status = packet.ext_status.encode('hex')
         ext_status = f"0x{packet.ext_status:08X}"
 
@@ -138,11 +184,11 @@ class SerialAssistant(QWidget, Ui_Form):
             "### gnss秒：\n"
             f"{gps_week_seconds}\n"
             "### 时间状态：\n"
-            f"{packet.time_status:02X}, {time_status}\n"
+            f"{packet.time_status:02X}, {time_status_text}\n"
             "### 组合状态：\n"
-            f"{packet.combined_status:02X}, {combined_status}\n"
+            f"{packet.combined_status:02X}, {combined_status_text}\n"
             "### 固定解：\n"
-            f"{packet.position_type:02X}, {position_type}\n"
+            f"{packet.position_type:02X}, {position_type_text}\n"
             "### 拓展字状态：\n"
             f"{ext_status}, 第六位：{status}\n"
         )
@@ -172,7 +218,7 @@ class SerialAssistant(QWidget, Ui_Form):
         # 预设 下拉菜单
         self.comboBox_scheme.addItems([
             "不使用",
-            "地面电台直连"
+            "串口PVA接收"
         ])
         # 波特率 下拉菜单
         self.comboBox_baud.addItems(['100', '300', '600', '1200', '2400', '4800', '9600', '14400', '19200',
@@ -248,9 +294,10 @@ class SerialAssistant(QWidget, Ui_Form):
                 # self.set_setting_enable(False)
                 self.groupBox_serial_sett.setEnabled(False)
             # asyncio.ensure_future(read_and_print(self.ser))
-            # asyncio.ensure_future(read_hex_(self.ser))
-            asyncio.ensure_future(read_pva_hex(self.ser, self.hex_to_display))
-
+            if self.comboBox_scheme.currentText() in ["串口PVA接收"]:
+                asyncio.ensure_future(read_pva_hex(self.ser, self.hex_to_display))
+            elif self.comboBox_scheme.currentText() in ["不使用"]:
+                asyncio.ensure_future(read_hex_(self.ser))
 
         # 按打开串口按钮 但 没有读取到串口
         elif (self.pushButton_open_serial.text() == '开串口') and (self.comboBox_port_choose.currentText() == '无串口'):
