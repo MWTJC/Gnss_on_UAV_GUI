@@ -64,17 +64,18 @@ jobs:
       - name: 获取 commit 哈希
         id: commit_hash
         run: |
-          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> "$GITEA_ENV"
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> "GITEA_OUTPUT"
 
       - name: 获取构建时间
         id: build_time
         run: |
-          echo "BUILD_TIME=$((Get-Date).ToString('yyyyMMddHHmmss'))" >> "$GITEA_ENV"
+          echo "BUILD_TIME=$((Get-Date).ToString('yyyyMMddHHmmss'))" >> "GITEA_OUTPUT"
 
       - name: 上传CI成品
         uses: ${{ env.ACTIONS_URL }}actions/upload-artifact@v3
+        id: artifact-upload-step
         with:
-          name: win64_dist_${{ env.COMMIT_HASH }}_${{ env.BUILD_TIME }}
+          name: win64_dist_${{ steps.commit_hash.outputs.COMMIT_HASH }}_${{ steps.build_time.outputs.BUILD_TIME }}
           path: |
             .\dist\${{ env.APP_FOLDER_NAME }}.dist
           if-no-files-found: error
