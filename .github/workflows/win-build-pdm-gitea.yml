@@ -8,7 +8,6 @@ on:
     tags:
       - "*w*"
 
-
 jobs:
   poetry-src-regen:
     runs-on: windows-amd64
@@ -38,7 +37,7 @@ jobs:
           pdm list
           pdm info
 
-      - name: 资源更新
+      - name: pyui资源更新
         working-directory: ${{ env.APP_FOLDER_NAME }}\scripts
         run: pdm run regen_ui.py
 
