@@ -5,8 +5,8 @@ defaults:
 name: gitea-CI-sparrow-poetry
 on:
   push:
-    tags:
-      - "*w*"
+#    tags:
+#      - "*w*"
 
 jobs:
   poetry-src-regen:
