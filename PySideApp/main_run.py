@@ -17,6 +17,7 @@ from PySide6.QtGui import QPixmap, QIcon, Qt
 from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessageBox, QTabWidget, QHeaderView, \
     QVBoxLayout, QLineEdit, QSpacerItem, QSizePolicy, QScrollArea, QWidget, QTableWidgetItem, \
     QToolButton, QFileDialog
+from pandas.io.clipboard import paste
 from qasync import QEventLoop
 
 from PySideApp.Libs.read_pva_file import PVAPacket, gps_to_datetime
@@ -31,10 +32,13 @@ MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/vite
 sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))
 logger.info(sys.path)
 
+from PySideApp.Libs.map_webchannel import WebHandler
+from PySideApp.Libs.nmea_decode import parse_and_convert_GP
 from PySideApp.Libs.test_runner import TestRunner
 from PySideApp.Libs.test_tasks_lib import TestTask, TestModule
 from PySideApp.Libs.TestModuleLib import get_all_test
-from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget, SearchDict
+from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget, SearchDict, \
+    activity_indicator, ActivityIndicator
 from PySideApp.Libs.settings_window import SettingsManager
 from PySideApp.Libs.map_server import LocalServer
 from PySideApp.Libs.settings_serial import SerialAssistant
@@ -99,6 +103,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.serial_dialog.show()
 
+    # @activity_indicator(ActivityIndicator)
     def display_online_info(self, package:PVAPacket|None, gnss_ok:bool, reset=False):
         if reset:
             self.pushButton_serial_status.setText("-")
@@ -108,19 +113,22 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         if package is None:
             self.pushButton_serial_status.setText("异常")
             return
-        self.label_gnss_status_value.setText(f"{"良好"if gnss_ok else"否"}")
-        self.label_device_time_value.setText(f"{gps_to_datetime(package.gps_week, package.gps_week_seconds).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} UTC")
-        self.label_longitude_online.setText(f"{package.longitude:03.15f}°")
-        self.label_latitude_online.setText(f"{package.latitude:03.15f}°")
-        self.label_height_online.setText(f"{package.altitude:0.3f}m")
-        self.label_speed_east_online.setText(f"{package.east_velocity:0.3f}m/s")
-        self.label_speed_north_online.setText(f"{package.north_velocity:0.3f}m/s")
-        self.label_speed_sky_online.setText(f"{package.up_velocity:0.3f}m/s")
-        self.label_angle_roll_online.setText(f"{package.roll:0.3f}°")
-        self.label_angle_pitch_online.setText(f"{package.pitch:0.3f}°")
-        self.label_angle_yaw_online.setText(f"{package.heading:0.3f}°")
-        self.label_velocity2d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2)**0.5:0.3f}m/s")
-        self.label_velocity3d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2+package.up_velocity**2)**0.5:0.3f}m/s")
+        try:
+            self.label_gnss_status_value.setText(f"{"良好"if gnss_ok else"否"}")
+            self.label_device_time_value.setText(f"{gps_to_datetime(package.gps_week, package.gps_week_seconds).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} UTC")
+            self.label_longitude_online.setText(f"{package.longitude:03.15f}°")
+            self.label_latitude_online.setText(f"{package.latitude:03.15f}°")
+            self.label_height_online.setText(f"{package.altitude:0.3f}m")
+            self.label_speed_east_online.setText(f"{package.east_velocity:0.3f}m/s")
+            self.label_speed_north_online.setText(f"{package.north_velocity:0.3f}m/s")
+            self.label_speed_sky_online.setText(f"{package.up_velocity:0.3f}m/s")
+            self.label_angle_roll_online.setText(f"{package.roll:0.3f}°")
+            self.label_angle_pitch_online.setText(f"{package.pitch:0.3f}°")
+            self.label_angle_yaw_online.setText(f"{package.heading:0.3f}°")
+            self.label_velocity2d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2)**0.5:0.3f}m/s")
+            self.label_velocity3d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2+package.up_velocity**2)**0.5:0.3f}m/s")
+        except OverflowError:
+            pass
 
 
     def init_serial(self):
