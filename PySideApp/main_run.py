@@ -108,10 +108,6 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         )
 
     def open_serial_dialog(self):
-        if self.serial_dialog is None:
-            self.serial_dialog = SerialAssistant()
-            self.serial_dialog.set_status_button(self.pushButton_serial_status)
-            self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.serial_dialog.show()
 
     def display_online_info(self, package:PVAPacket|None, gnss_ok:bool, reset=False):
@@ -143,6 +139,9 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
 
 
     def init_serial(self):
+        self.serial_dialog = SerialAssistant()
+        self.serial_dialog.set_status_button(self.pushButton_serial_status)
+        self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.actionConnectSerial.triggered.connect(self.open_serial_dialog)
 
     def init_map(self):
