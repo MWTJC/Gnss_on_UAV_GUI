@@ -70,11 +70,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
     def __init__(self):
         super().__init__()
+        self.setupUi(self)
+        self.loop = asyncio.get_event_loop()  # 异步loop取得
         self.error = False
         self.current_proj_path:Path|None = None
         self.serial_dialog: SerialAssistant|None = None
-        self.setupUi(self)
-        self.loop = asyncio.get_event_loop()  # 异步loop取得
         self.init_main_parts()
         self.bind_func()
         # self.bind_signal()
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
         # 初始化测试执行器
         self.init_test_runner()
         # 初始化地图
-        # self.init_map()
+        self.init_map()
         # 初始化主窗口状态显示
         self.display_online_info(None, False, reset=True)
 
@@ -108,6 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
     def open_serial_dialog(self):
         self.serial_dialog.show()
+        print("cccc")
 
     def display_online_info(self, package:PVAPacket|None, gnss_ok:bool, reset=False):
         self.activity_indicator.notify()
@@ -138,10 +139,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
 
     def init_serial(self):
+        logger.debug("aaa")
         self.serial_dialog = SerialAssistant()
         self.serial_dialog.set_status_button(self.pushButton_serial_status)
         self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.actionConnectSerial.triggered.connect(self.open_serial_dialog)
+        logger.debug("bbb")
 
     def init_map(self):
         self.map_server = LocalServer(port=28000, dir=MAP_HTML_DIR)

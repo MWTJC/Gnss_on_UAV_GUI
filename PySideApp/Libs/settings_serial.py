@@ -63,9 +63,11 @@ class SerialAssistant(QWidget, Ui_Form):
 
     def set_package_send_callback(self, callback):
         self.package_send_callback = callback
+        print("bbbb")
 
     def set_status_button(self, button:QPushButton):
         self.pushButton_serial_status = button
+        print("aaaa")
 
     def start_reading(self):
         self.ser.close()
