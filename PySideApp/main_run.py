@@ -139,12 +139,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
 
     def init_serial(self):
-        logger.debug("aaa")
         self.serial_dialog = SerialAssistant()
         self.serial_dialog.set_status_button(self.pushButton_serial_status)
         self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.actionConnectSerial.triggered.connect(self.open_serial_dialog)
-        logger.debug("bbb")
 
     def init_map(self):
         self.map_server = LocalServer(port=28000, dir=MAP_HTML_DIR)

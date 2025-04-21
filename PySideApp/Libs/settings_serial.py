@@ -1,7 +1,6 @@
 from qasync import asyncio, asyncSlot
 import queue
 import sys
-from multiprocessing import Manager
 
 import aioserial
 import serial
@@ -37,8 +36,8 @@ async def read_hex_(aioserial_instance: aioserial.AioSerial):
 class SerialAssistant(QWidget, Ui_Form):
     def __init__(self):
         super().__init__()
-        self.data_storage = []
         self.setupUi(self)
+        self.data_storage = []
         self.pushButton_open_serial.setEnabled(False)
         # 初始化serial对象 用于串口通信
         self.ser = aioserial.AioSerial()
@@ -47,27 +46,21 @@ class SerialAssistant(QWidget, Ui_Form):
         self.queue = queue.Queue()
         # 初始化串口配置文件
         # self.serial_cfg()
-
         # 初始化与绑定槽
         self.unit_serial()
-
         # 初始化循环计时器
         self.timer_plot = QtCore.QTimer(self)
         self.timer_status = QtCore.QTimer(self)
 
-        # 多进程共享变量管理
-        self.manager = Manager()
         # self.data_storage.command_status = self.manager.list()
         # 数据包回传主界面回调
         self.package_send_callback = None
 
     def set_package_send_callback(self, callback):
         self.package_send_callback = callback
-        print("bbbb")
 
     def set_status_button(self, button:QPushButton):
         self.pushButton_serial_status = button
-        print("aaaa")
 
     def start_reading(self):
         self.ser.close()
