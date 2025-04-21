@@ -36,5 +36,6 @@ build = {cmd = [
     "--output-dir=dist",
     "--enable-plugin=pyside6,upx",
     "--windows-icon-from-ico=PySideApp/build_src/ico/app_icon.ico",
+    "--include-data-files=PySideApp/pyui/img_resource_rc.py",
     "PySideApp"
 ]}
