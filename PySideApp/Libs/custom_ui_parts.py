@@ -1,4 +1,6 @@
-from PySide6.QtCore import QRect, QSize, QPoint
+from functools import wraps
+
+from PySide6.QtCore import QRect, QSize, QPoint, QTimer, QObject, Signal, Slot
 from PySide6.QtGui import Qt, QIcon
 from PySide6.QtWidgets import QSizePolicy, QToolButton, QWidget, QScrollArea, QVBoxLayout, QHBoxLayout, QPushButton
 
@@ -148,3 +150,59 @@ def add_func_block_single(area:QScrollArea, layout:QVBoxLayout|QHBoxLayout, text
     layout.addWidget(flow_widget)
 
     return toolButton_expand, flow_widget
+
+
+class ActivityIndicator(QObject):
+    activity_signal = Signal()
+
+    def __init__(self, button: QPushButton,
+                 active_style="background-color: green;",
+                 inactive_style="background-color: gray;",
+                 duration=100):
+        """
+        初始化活动指示器
+
+        Args:
+            button: 用作指示灯的QPushButton
+            active_style: 活动状态的样式
+            inactive_style: 非活动状态的样式
+            duration: 亮起持续时间(毫秒)
+        """
+        super().__init__()
+        self.button = button
+        self.active_style = active_style
+        self.inactive_style = inactive_style
+        self.original_style = button.styleSheet()
+        self.duration = duration
+
+        # 设置计时器
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.reset_button)
+
+        # 连接信号和槽
+        self.activity_signal.connect(self.on_activity)
+
+    @Slot()
+    def on_activity(self):
+        """当收到活动信号时触发"""
+        self.button.setStyleSheet(self.active_style)
+        self.timer.start(self.duration)  # 指定时间后恢复
+
+    def reset_button(self):
+        """重置按钮样式"""
+        self.button.setStyleSheet(self.inactive_style or self.original_style)
+
+    def notify(self):
+        """通知有活动发生"""
+        self.activity_signal.emit()
+
+    def decorate(self, func):
+        """装饰器，用于监控函数执行"""
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            self.notify()
+            return func(*args, **kwargs)
+
+        return wrapper

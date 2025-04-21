@@ -38,7 +38,7 @@ from PySideApp.Libs.test_runner import TestRunner
 from PySideApp.Libs.test_tasks_lib import TestTask, TestModule
 from PySideApp.Libs.TestModuleLib import get_all_test
 from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_single, FlowWidget, SearchDict, \
-    activity_indicator, ActivityIndicator
+    ActivityIndicator
 from PySideApp.Libs.settings_window import SettingsManager
 from PySideApp.Libs.map_server import LocalServer
 from PySideApp.Libs.settings_serial import SerialAssistant
@@ -83,6 +83,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
     def init_main_parts(self):  # 目前无法异步，因为涉及类的初始化，使用异步需要大改
         # 初始化设置管理器
         self.init_settings_manager()
+        # 初始化闪烁指示灯
+        self.init_status_flashlight()
         # 初始化串口部分
         self.init_serial()
         # 初始化表格组件
@@ -96,6 +98,15 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         # 初始化主窗口状态显示
         self.display_online_info(None, False, reset=True)
 
+
+    def init_status_flashlight(self):
+        self.activity_indicator = ActivityIndicator(
+            button=self.pushButton_serial_status,
+            # active_style="background-color: #00FF00; border-radius: 7px; border: none;",
+            # inactive_style="background-color: gray; border-radius: 7px; border: none;",
+            # duration=100  # 亮0.1秒
+        )
+
     def open_serial_dialog(self):
         if self.serial_dialog is None:
             self.serial_dialog = SerialAssistant()
@@ -103,8 +114,8 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
             self.serial_dialog.set_package_send_callback(self.display_online_info)
         self.serial_dialog.show()
 
-    # @activity_indicator(ActivityIndicator)
     def display_online_info(self, package:PVAPacket|None, gnss_ok:bool, reset=False):
+        self.activity_indicator.notify()
         if reset:
             self.pushButton_serial_status.setText("-")
             self.label_gnss_status_value.setText("-")
