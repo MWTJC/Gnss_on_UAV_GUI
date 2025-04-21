@@ -20,8 +20,6 @@ from PySide6.QtWidgets import QSplashScreen, QApplication, QMainWindow, QMessage
 from pandas.io.clipboard import paste
 from qasync import QEventLoop
 
-from PySideApp.Libs.read_pva_file import PVAPacket, gps_to_datetime
-
 locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
 os.environ["QT_API"] = "PySide6"
 splashpath = ":/img/splash.jpg"
@@ -32,6 +30,7 @@ MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/vite
 sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))
 logger.info(sys.path)
 
+from PySideApp.Libs.read_pva_file import PVAPacket, gps_to_datetime
 from PySideApp.Libs.map_webchannel import WebHandler
 from PySideApp.Libs.nmea_decode import parse_and_convert_GP
 from PySideApp.Libs.test_runner import TestRunner
@@ -42,7 +41,7 @@ from PySideApp.Libs.custom_ui_parts import add_func_single, add_func_block_singl
 from PySideApp.Libs.settings_window import SettingsManager
 from PySideApp.Libs.map_server import LocalServer
 from PySideApp.Libs.settings_serial import SerialAssistant
-from PySideApp.pyui import MainWindowUI
+from PySideApp.pyui.MainWindowUI import Ui_MainWindow
 
 def custom_excepthook(exc_type, exc_value, exc_traceback):
     # 记录异常信息
@@ -66,7 +65,7 @@ class SplashScreen(QSplashScreen):
         self.deleteLater()
 
 
-class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实现具体功能
+class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功能
     func_a_ok_signal = Signal()
 
     def __init__(self):
@@ -94,7 +93,7 @@ class MainWindow(QMainWindow, MainWindowUI.Ui_MainWindow):  # 手搓函数，实
         # 初始化测试执行器
         self.init_test_runner()
         # 初始化地图
-        self.init_map()
+        # self.init_map()
         # 初始化主窗口状态显示
         self.display_online_info(None, False, reset=True)
 
