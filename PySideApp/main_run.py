@@ -227,7 +227,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
                                          )
             if reply != QMessageBox.StandardButton.Yes:
                 return
-        self.task_history_list = []
+        self.task_history_list:list[TestTask] = []
         self.refresh_fill_table_data()
         QMessageBox.information(self, "信息", "已新建...")
 

@@ -4,6 +4,9 @@ from enum import auto, Enum
 
 import pandas as pd
 
+from PySideApp.Libs.read_pva_file import PVASheet
+
+
 class ParamType(Enum):
     int = auto()
     float = auto()
@@ -55,7 +58,7 @@ class TestTask:
         self.type = task_type
         self.input_param_list = input_param_list
         self.step_list = step_list
-        self.org_dataframe: pd.DataFrame|None = None
+        self.org_dataframe: pd.DataFrame|PVASheet|None = None
         self.note = note
         self.current_step = 0
 

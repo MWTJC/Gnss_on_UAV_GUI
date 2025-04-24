@@ -2,6 +2,7 @@ import struct
 import binascii
 from datetime import datetime, timedelta
 
+import pandas as pd
 import pytz
 from loguru import logger
 
@@ -87,6 +88,14 @@ class PVAPacket:
             f"姿态信息: 横滚={self.roll}°, 俯仰={self.pitch}°, 航向={self.heading}°\n"
             f"CRC校验: {hex(self.crc) if self.crc is not None else None}, {"通过" if self.crc_valid else "不通过"}\n"
         )
+
+class PVASheet(pd.DataFrame):
+    def __init__(self):
+        super().__init__()
+        self.columns = ["timestamp",
+                        "latitude", "longitude", "altitude",
+                        "velocity_north", "velocity_east", "velocity_up",
+                        "roll", "pitch", "heading"]
 
 
 def find_packet_start(data, start_pos=0):

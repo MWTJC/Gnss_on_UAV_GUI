@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QDialog, QLabel, QHBoxLayout, QLineEdit, QFormLayo
 from loguru import logger
 
 from PySideApp.Libs.TestModuleLib import GBT38058_2019
-from PySideApp.Libs.read_pva_file import parse_pva_file
+from PySideApp.Libs.read_pva_file import parse_pva_file, PVASheet
 from PySideApp.Libs.test_tasks_lib import TestModule, ParamType, TestTask
 from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
@@ -157,13 +157,21 @@ class TestRunner(Ui_Dialog, QDialog):
         self.tabWidget_test_runner.setTabEnabled(2, False)
         self.tabWidget_test_runner.setTabEnabled(3, False)
 
+    def PVA_calculate(self):
+        self.test_module.calculate()
+        logger.debug("计算")
+
     def set_test_info(self, uuid:int=None,
                       module:TestModule|GBT38058_2019.T6_4_5=None,
                       history_task:TestTask=None
-                      ):
+                      ):  # 用于显示历史检测记录
         self.test_module = module
+        self.current_view_history_task:TestTask = history_task
         self.reset_ui()
-        if not uuid:
+        if not uuid:  # 如果是历史记录浏览
+            self.pushButton_start_test.setDisabled(True)
+            self.pushButton_load_file.setEnabled(True)
+            self.pushButton_calcu_file.clicked.connect(self.PVA_calculate)  # 计算触发
             uuid = history_task.id
         self.lineEdit_uuid.setText(str(uuid))
         self.lineEdit_uuid.setDisabled(True)
