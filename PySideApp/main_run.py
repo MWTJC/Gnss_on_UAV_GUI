@@ -559,6 +559,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 @logger.catch
 def main():
     app = QApplication(sys.argv)  # 实例化，传参
+    app.setAttribute(Qt.ApplicationAttribute.AA_UseSoftwareOpenGL)
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)  # 全局异步能力
     splash = SplashScreen()
