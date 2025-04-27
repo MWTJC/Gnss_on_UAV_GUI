@@ -13,6 +13,7 @@ from PySideApp.pyui.TestRunnerUI import Ui_Dialog
 
 
 class TestRunner(Ui_Dialog, QDialog):
+    signal_test_start = Signal()
     signal_test_over = Signal()
     def __init__(self):
         super().__init__()
@@ -121,6 +122,7 @@ class TestRunner(Ui_Dialog, QDialog):
             uuid=int(self.lineEdit_uuid.text()),
             input_param_list=param_list, note=a
         )
+        self.signal_test_start.emit()
         self.refresh()
         self.timer.start(333)  # 设置0.3秒刷新一次
 
@@ -158,8 +160,8 @@ class TestRunner(Ui_Dialog, QDialog):
         self.tabWidget_test_runner.setTabEnabled(3, False)
 
     def PVA_calculate(self):
-        self.test_module.calculate()
         logger.debug("计算")
+        # self.test_module.calculate()
 
     def set_test_info(self, uuid:int=None,
                       module:TestModule|GBT38058_2019.T6_4_5=None,

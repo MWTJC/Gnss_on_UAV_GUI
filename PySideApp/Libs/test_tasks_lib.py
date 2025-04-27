@@ -59,6 +59,7 @@ class TestTask:
         self.input_param_list = input_param_list
         self.step_list = step_list
         self.org_dataframe: pd.DataFrame|PVASheet|None = None
+        self.org_data_bytearray: bytearray|None = None
         self.note = note
         self.current_step = 0
 

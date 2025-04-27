@@ -1,5 +1,5 @@
+import copy
 from qasync import asyncio, asyncSlot
-import queue
 import sys
 
 import aioserial
@@ -21,7 +21,10 @@ async def read_and_print(aioserial_instance: aioserial.AioSerial):
 @asyncSlot()
 async def read_pva_hex(aioserial_instance: aioserial.AioSerial, callback):
     while True:
-        callback(await aioserial_instance.read_async(size=158))
+        try:
+            callback(await aioserial_instance.read_async(size=158))
+        except serial.serialutil.PortNotOpenError:
+            return
 
 @asyncSlot()
 async def read_gpgga_to_list(aioserial_instance: aioserial.AioSerial, list_storage: list):
@@ -29,32 +32,38 @@ async def read_gpgga_to_list(aioserial_instance: aioserial.AioSerial, list_stora
         list_storage.append((await aioserial_instance.read_async()).decode(errors='ignore'))
 
 @asyncSlot()
-async def read_hex_(aioserial_instance: aioserial.AioSerial):
+async def read_hex_(aioserial_instance: aioserial.AioSerial, callback):
     while True:
-        print((await aioserial_instance.read_async(size=158)).hex(), end='\n', flush=True)
+        try:
+            callback(await aioserial_instance.read_async(size=158))
+        except serial.serialutil.PortNotOpenError:
+            return
 
 class SerialAssistant(QWidget, Ui_Form):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.data_storage = []
+        self.data_storage: list[PVAPacket] = []
+        self.data_storage_bytes = bytearray()
         self.pushButton_open_serial.setEnabled(False)
         # 初始化serial对象 用于串口通信
         self.ser = aioserial.AioSerial()
         # 变量
         self.port_dict = None
-        self.queue = queue.Queue()
         # 初始化串口配置文件
         # self.serial_cfg()
         # 初始化与绑定槽
         self.unit_serial()
-        # 初始化循环计时器
-        self.timer_plot = QtCore.QTimer(self)
-        self.timer_status = QtCore.QTimer(self)
 
-        # self.data_storage.command_status = self.manager.list()
         # 数据包回传主界面回调
         self.package_send_callback = None
+
+    def clear_storage(self):
+        self.data_storage = []
+        self.data_storage_bytes = bytearray()
+
+    def get_storage(self):
+        return copy.deepcopy(self.data_storage), copy.deepcopy(self.data_storage_bytes)
 
     def set_package_send_callback(self, callback):
         self.package_send_callback = callback
@@ -62,50 +71,16 @@ class SerialAssistant(QWidget, Ui_Form):
     def set_status_button(self, button:QPushButton):
         self.pushButton_serial_status = button
 
-    def start_reading(self):
-        self.ser.close()
-        self.ser.open()
-        self.data_storage = []
-        # self.serial_reader = SerialReader(self.ser, self.queue, self.data_storage)
-        # self.serial_reader.start()
-        self.timer_status.timeout.connect(self.display_data)
-        self.timer_status.start(1000)  # 每隔一秒更新一次信息
+    def raw_hex_to_display(self, content: bytes):
+        md_text = content.hex().upper()
+        if not md_text:
+            return
+        self.textEdit_serial_details.setMarkdown(f"<font size=20 face='Terminal'>{md_text}</font>")
 
-    def stop_core(self):
-
-        def fun_d():
-            self.ser.close()
-            self.ser.open()
-            return True
-
-        functions = [fun_d]
-        all_success = True
-        for func in functions:
-            try:
-                result = func()
-                if not result:
-                    print(f"Function {func.__name__} failed")
-                    all_success = False
-            except Exception as e:
-                print(f"Error in function {func.__name__}: {str(e)}")
-                all_success = False
-
-        self.progressBar_status_port.setMaximum(1)
-        self.progressBar_status_port.setValue(0)
-
-        if all_success:
-            self.pushButton_serial_status.setStyleSheet('QPushButton{background:'
-                                                + '#B3B3B3'
-                                                + ';}')
-            self.pushButton_serial_status.setText("已停止")
-        else:
-            self.pushButton_serial_status.setStyleSheet('QPushButton{background:'
-                                                + '#FFB300'
-                                                + ';}')
-            self.pushButton_serial_status.setText("停止异常")
-
-    def hex_to_display(self, content: bytes):
+    def pva_hex_to_display(self, content: bytes):
         packet, offset, is_valid = parse_packet(content)
+        if not packet:
+            return
         packet: PVAPacket
         gps_week_seconds = packet.gps_week_seconds
         time_status = True if packet.time_status == 180 else False
@@ -188,25 +163,16 @@ class SerialAssistant(QWidget, Ui_Form):
             f"{ext_status}, 第六位：{status}\n"
         )
         self.textEdit_serial_details.setMarkdown(md_text)
+
+        # 记录
+        self.data_storage.append(packet)
+        self.data_storage_bytes.extend(content)
+
         if self.package_send_callback:
             self.package_send_callback(
                 package=packet,
                 gnss_ok=time_status is True and combined_status is True and position_type is True  # 状态良好
             )
-
-
-    def display_data(self):
-        # 设置状态，目前区分为：灰色，停止，绿色，正常运作， 黄色，正在自适应调节，红色，丢包，需要重开
-        t_c = "#000000"
-        c = "#37FF2B"
-        t = "正常"
-        self.pushButton_serial_status.setStyleSheet('QPushButton{background:'
-                                            + c
-                                            + ';color:'
-                                            + t_c
-                                            + '}'
-                                            )
-        self.pushButton_serial_status.setText(t)
 
 
     def unit_serial(self):
@@ -290,9 +256,9 @@ class SerialAssistant(QWidget, Ui_Form):
                 self.groupBox_serial_sett.setEnabled(False)
             # asyncio.ensure_future(read_and_print(self.ser))
             if self.comboBox_scheme.currentText() in ["串口PVA接收"]:
-                asyncio.ensure_future(read_pva_hex(self.ser, self.hex_to_display))
+                asyncio.ensure_future(read_pva_hex(self.ser, self.pva_hex_to_display))
             elif self.comboBox_scheme.currentText() in ["不使用"]:
-                asyncio.ensure_future(read_hex_(self.ser))
+                asyncio.ensure_future(read_hex_(self.ser, self.raw_hex_to_display))
 
         # 按打开串口按钮 但 没有读取到串口
         elif (self.pushButton_open_serial.text() == '开串口') and (self.comboBox_port_choose.currentText() == '无串口'):

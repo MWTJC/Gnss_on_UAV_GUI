@@ -7,6 +7,8 @@ import sys
 import locale
 import time
 from pathlib import Path
+
+import pandas as pd
 from natsort import natsorted
 
 from PySide6.QtWebChannel import QWebChannel
@@ -108,7 +110,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
     def open_serial_dialog(self):
         self.serial_dialog.show()
-        print("cccc")
 
     def display_online_info(self, package:PVAPacket|None, gnss_ok:bool, reset=False):
         self.activity_indicator.notify()
@@ -126,6 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             self.label_longitude_online.setText(f"{package.longitude:03.15f}°")
             self.label_latitude_online.setText(f"{package.latitude:03.15f}°")
             self.label_height_online.setText(f"{package.altitude:0.3f}m")
+            self.label_ground_height_online.setText(f"{package.altitude + package.altitude_std:0.3f}m")
             self.label_speed_east_online.setText(f"{package.east_velocity:0.3f}m/s")
             self.label_speed_north_online.setText(f"{package.north_velocity:0.3f}m/s")
             self.label_speed_sky_online.setText(f"{package.up_velocity:0.3f}m/s")
@@ -134,7 +136,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             self.label_angle_yaw_online.setText(f"{package.heading:0.3f}°")
             self.label_velocity2d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2)**0.5:0.3f}m/s")
             self.label_velocity3d_online.setText(f"{(package.east_velocity**2+package.north_velocity**2+package.up_velocity**2)**0.5:0.3f}m/s")
-        except OverflowError:
+        except OverflowError:  # 在设备从无位置信息到有位置信息的一瞬间，可能有数据异常，如too large啥的，跳过
             pass
 
 
@@ -203,11 +205,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
     def init_test_runner(self):
         self.test_runner = TestRunner()
         self.test_runner.signal_test_over.connect(self.read_result_from_runner)
+        self.test_runner.signal_test_start.connect(self.reset_serial_storage)
 
     def read_result_from_runner(self):
         result = self.test_runner.get_task_result()
+        pva_list, bytearray_raw = self.serial_dialog.get_storage()
+        if bytearray_raw:
+            result.org_data_bytearray = bytearray_raw
         self.task_history_list.append(result)
         self.refresh_fill_table_data()
+
+    def reset_serial_storage(self):
+        self.serial_dialog.clear_storage()
 
     def bind_func(self):
         """
@@ -311,7 +320,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
                 flow_widget.updateVisibleWidgets()
                 flow_widget.update()
 
-
+    @logger.catch()
     def add_func_to_box(self):
         try:
             test_module_list = get_all_test()
@@ -360,6 +369,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
 
     def bind_test_button(self, button, test_module:TestModule):
+        """
+        绑定检测模块到任务执行器
+        """
         def click_handler():
             uuid = int(time.strftime('%Y%m%d%H%M%S', time.localtime(time.time())))
             self.test_runner.set_test_info(uuid=uuid, module=test_module)
@@ -419,6 +431,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             )
             detail_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
 
+            # 详情按钮
+            export_btn = QToolButton()
+            export_btn.setText("导出数据")
+            export_btn.setIcon(
+                QIcon(QIcon.fromTheme(u"document-save-as"))
+            )
+            export_btn.clicked.connect(lambda checked, r=row: self.export_single_raw(r))
+            if not self.task_history_list[row].org_data_bytearray:  # 若不包含有效数据
+                export_btn.setDisabled(True)
+
             # # 计算按钮
             # run_caculate_btn = QToolButton()
             # run_caculate_btn.setText("计算")
@@ -431,19 +453,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             widget.addWidget(detail_btn)
             # widget.addWidget(run_caculate_btn)
             widget.addWidget(delete_btn)
+            widget.addWidget(export_btn)
 
             # 将按钮容器设置到表格中
             self.tableWidget.setCellWidget(row, 5, widget)
 
     def delete_row(self, row):
-        print(f"删除第 {row + 1} 行")
-        # self.tableWidget.removeRow(row)
+        logger.info(f"删除第 {row + 1} 行")
+        reply = QMessageBox.question(
+            self, "警告", "确认删除此条记录？",
+            QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        del self.task_history_list[row]
+        self.refresh_fill_table_data()  # 刷新显示
 
     def show_detail(self, row):
-        print(f"显示第 {row + 1} 行的详情")
+        logger.info(f"显示第 {row + 1} 行的详情")
         task: TestTask = self.task_history_list[row]
         self.test_runner.set_test_info(history_task=task)
         self.test_runner.show()
+
+    def export_single_raw(self, row):
+        logger.info(f"导出第 {row + 1} 行的数据")
+        task: TestTask = self.task_history_list[row]
+        path, ext = QFileDialog.getSaveFileName(
+            self, "导出hex数据", "",
+            "hex(*.hex)"
+        )
+        if not path:  # 判断路径非空
+            logger.warning("取消导出...")
+            return
+        # frame: pd.DataFrame = task.org_dataframe
+        # frame.to_csv(path)
+        with open(path, 'wb') as f:
+            f.write(task.org_data_bytearray)
+        QMessageBox.information(self, "信息", f"已导出：{path}")
 
     def init_settings_manager(self):
         # 定义需要保存状态的部件
