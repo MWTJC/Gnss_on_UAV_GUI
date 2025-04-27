@@ -77,7 +77,7 @@ jobs:
           echo FILE_SIZE: "${size}MB"
 
       - name: PreRelease
-        uses: ${{ env.ACTIONS_URL }}actions/gitea-release-action
+        uses: ${{ env.ACTIONS_URL }}actions/gitea-release-action@v1
         with:
           files: |
             .\*.7z
