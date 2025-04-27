@@ -61,28 +61,29 @@ jobs:
             .\dist
           key: dist-${{ steps.hash-go.outputs.hash }}
 
-      - name: 获取 commit 哈希
-        id: commit_hash
-        run: |
-          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> "GITEA_OUTPUT"
+      - name: 压缩7z
+        run: 7z.exe a -t7z -m0=LZMA2 -mmt=on -mx9 -mqs=on -bsp2  -mtc=on -mta=on ".\dist7z.7z" ".\dist\${{ env.APP_FOLDER_NAME }}.dist"
 
-      - name: 获取构建时间
-        id: build_time
+      - name: 获取 commit 哈希
         run: |
-          echo "BUILD_TIME=$((Get-Date).ToString('yyyyMMddHHmmss'))" >> "GITEA_OUTPUT"
+          # 获取短 commit hash
+          $commit = git rev-parse --short HEAD
+          # 获取文件大小（以 MB 为单位）
+          $size = [math]::Round((Get-Item "output.zip").length / 1MB, 2)
+          # 获取构建时间
+          BUILD_TIME=$((Get-Date).ToString('yyyyMMddHHmmss'))
+          # 构造新文件名
+          $newFileName = "Win64_${BUILD_TIME}_${commit}_${size}MB.7z"
+          # 重命名文件
+          Rename-Item "dist7z.7z" $newFileName
 
       - name: 上传CI成品
         uses: ${{ env.ACTIONS_URL }}actions/upload-artifact@v3
-        id: artifact-upload-step
         with:
-          name: win64_dist_${{ steps.commit_hash.outputs.COMMIT_HASH }}_${{ steps.build_time.outputs.BUILD_TIME }}
           path: |
-            .\dist\${{ env.APP_FOLDER_NAME }}.dist
+            ./*.7z
           if-no-files-found: error
-          compression-level: 9
-          overwrite: true
+          compression-level: 0
           retention-days: 5
 
-      - name: SHA-256
-        run: echo 'SHA-256 ${{ steps.artifact-upload-step.outputs.artifact-digest }}'
 
