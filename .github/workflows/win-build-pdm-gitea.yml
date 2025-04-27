@@ -6,7 +6,7 @@ name: gitea-CI-sparrow-poetry
 on:
   push:
     tags:
-      - "*"
+      - "*w*"  # 以w结尾
 
 jobs:
   poetry-src-regen:
@@ -70,10 +70,8 @@ jobs:
           $commit = git rev-parse --short HEAD
           # 获取文件大小（以 MB 为单位）
           $size = [math]::Round((Get-Item "dist7z.7z").length / 1MB, 2)
-          # 获取构建时间
-          BUILD_TIME=$((Get-Date).ToString('yyyyMMddHHmmss'))
           # 构造新文件名
-          $newFileName = "Win64_${BUILD_TIME}_${commit}_${size}MB.7z"
+          $newFileName = "Win64_${commit}_${size}MB.7z"
           # 重命名文件
           Rename-Item "dist7z.7z" $newFileName
           echo FILE_SIZE: "${size}MB"
