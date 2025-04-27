@@ -155,10 +155,12 @@ def add_func_block_single(area:QScrollArea, layout:QVBoxLayout|QHBoxLayout, text
 class ActivityIndicator(QObject):
     activity_signal = Signal()
 
-    def __init__(self, button: QPushButton,
-                 active_style="background-color: green;",
-                 inactive_style="background-color: gray;",
-                 duration=100):
+    def __init__(
+            self, button: QPushButton,
+                 active_style="background-color: #31FF6D;",  # 默认亮绿色
+                 inactive_style="",  # 恢复默认
+                 duration=70,  # active持续毫秒
+    ):
         """
         初始化活动指示器
 
