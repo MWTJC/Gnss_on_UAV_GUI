@@ -6,7 +6,7 @@ name: gitea-CI-sparrow-poetry
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 jobs:
   poetry-src-regen:
@@ -75,16 +75,16 @@ jobs:
           # 构造新文件名
           $newFileName = "Win64_${BUILD_TIME}_${commit}_${size}MB.7z"
           # 重命名文件
-          Rename-Item "dist7z.7z" $newFileName
+          Rename-Item ".\dist7z.7z" $newFileName
           echo FILE_SIZE: "${size}MB"
 
-      - name: 上传CI成品
-        uses: ${{ env.ACTIONS_URL }}actions/upload-artifact@v3
+      - name: PreRelease
+        uses: ${{ env.ACTIONS_URL }}actions/gitea-release-action
         with:
-          path: |
-            ./*.7z
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 5
+          files: |
+            .\*.7z
+          prerelease: true
+          md5sum: true
+
 
 
