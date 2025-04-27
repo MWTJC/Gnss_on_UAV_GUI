@@ -70,17 +70,13 @@ jobs:
           $commit = git rev-parse --short HEAD
           # 获取文件大小（以 MB 为单位）
           $size = [math]::Round((Get-Item "dist7z.7z").length / 1MB, 2)
-          # 构造新文件名
-          $newFileName = "Win64_${commit}_${size}MB.7z"
-          # 重命名文件
-          Rename-Item ".\dist7z.7z" $newFileName
           echo FILE_SIZE: "${size}MB"
 
       - name: PreRelease
         uses: ${{ env.ACTIONS_URL }}actions/gitea-release-action@v1
         with:
           files: |
-            .\*.7z
+            dist7z.7z
           prerelease: true
           md5sum: true
 

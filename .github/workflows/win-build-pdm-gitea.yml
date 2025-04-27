@@ -61,28 +61,13 @@ jobs:
             .\dist
           key: dist-${{ steps.hash-go.outputs.hash }}
 
-      - name: 压缩7z
-        run: 7z.exe a -t7z -m0=LZMA2 -mmt=on -mx9 -mqs=on -bsp2  -mtc=on -mta=on ".\dist7z.7z" ".\dist\${{ env.APP_FOLDER_NAME }}.dist"
-
-      - name: 文件信息
-        run: |
-          # 获取短 commit hash
-          $commit = git rev-parse --short HEAD
-          # 获取文件大小（以 MB 为单位）
-          $size = [math]::Round((Get-Item "dist7z.7z").length / 1MB, 2)
-          # 构造新文件名
-          $newFileName = "Win64_${commit}_${size}MB.7z"
-          # 重命名文件
-          Rename-Item "dist7z.7z" $newFileName
-          echo FILE_SIZE: "${size}MB"
-
       - name: 上传CI成品
         uses: ${{ env.ACTIONS_URL }}actions/upload-artifact@v3
         with:
           path: |
-            ./*.7z
+            .\dist\${{ env.APP_FOLDER_NAME }}.dist
           if-no-files-found: error
-          compression-level: 0
+          compression-level: 9
           retention-days: 5
 
 
