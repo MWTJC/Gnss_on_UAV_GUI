@@ -51,7 +51,7 @@ jobs:
             .\dist
           key: dist-${{ steps.hash-go.outputs.hash }}
 
-      - name: Nuitka构建-本地-单文件
+      - name: Nuitka构建
         run: pdm run build
 
       - name: 缓存 nuitka
