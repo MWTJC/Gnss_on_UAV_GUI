@@ -27,7 +27,7 @@ os.environ["QT_API"] = "PySide6"
 splashpath = ":/img/splash.jpg"
 os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = "9222"
 os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-web-security"  # 允许网页访问外部资源
-os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"  # bugreports.qt.io/browse/QTBUG-134746
+# os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"  # bugreports.qt.io/browse/QTBUG-134746
 # MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/self_map"))
 MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/vite-leaflet/dist"))
 sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))

@@ -6,7 +6,7 @@ authors = [
     {name = "John Smith", email = "john@example.com"},
 ]
 dependencies = [
-    "pyside6>=6.8.2",
+    "pyside6~=6.8.2",
     "tqdm",
     "nuitka",
     "loguru",
