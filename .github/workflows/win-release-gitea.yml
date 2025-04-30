@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: 检出repo
         uses: ${{ env.ACTIONS_URL }}actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的git历史记录
 
       - name: 取得hash标记符
         uses: ${{ env.ACTIONS_URL }}actions/go-hashfiles@v0.0.1
@@ -72,11 +74,61 @@ jobs:
           $size = [math]::Round((Get-Item "dist7z.7z").length / 1MB, 2)
           echo FILE_SIZE: "${size}MB"
 
+      # 生成 changelog
+      - name: 生成 changelog
+        run: |
+          $CURRENT_TAG = $env:GITHUB_REF -replace 'refs/tags/', ''
+          $PREVIOUS_TAG = git tag -l 'v*' --sort=-v:refname | Select-String -Pattern "^${CURRENT_TAG}$" -Context 0,1 | ForEach-Object { $_.Context.PostContext[0] }
+          
+          $CHANGELOG = @"
+          # 🎉 Release $CURRENT_TAG
+          
+          ## 📝 Changelog
+          
+          "@
+          
+          if ($PREVIOUS_TAG) {
+            $CHANGELOG += "Changes between $PREVIOUS_TAG and $CURRENT_TAG:`n`n"
+          } else {
+            $CHANGELOG += "Initial release $CURRENT_TAG:`n`n"
+          }
+          
+          # 获取不同类型的提交
+          $FEATURES = git log --pretty=format:"- ✨ %s (%h) by @%an" "${PREVIOUS_TAG}..${CURRENT_TAG}" --grep="^feat"
+          $FIXES = git log --pretty=format:"- 🐛 %s (%h) by @%an" "${PREVIOUS_TAG}..${CURRENT_TAG}" --grep="^fix"
+          $DOCS = git log --pretty=format:"- 📚 %s (%h) by @%an" "${PREVIOUS_TAG}..${CURRENT_TAG}" --grep="^docs"
+          $OTHER = git log --pretty=format:"- 🔧 %s (%h) by @%an" "${PREVIOUS_TAG}..${CURRENT_TAG}" --invert-grep --grep="^(feat|fix|docs|ci)"
+          
+          # 组合内容
+          $CONTENT = @"
+          
+          ### ✨ 特性
+          
+          $FEATURES
+          
+          ### 🐛 Bug修复
+          
+          $FIXES
+          
+          ### 📚 文档
+          
+          $DOCS
+          
+          ### 🔧 其他
+          
+          $OTHER
+          "@
+          
+          # 写入文件
+          $CHANGELOG + $CONTENT | Out-File -FilePath "changelog.md" -Encoding UTF8
+
+
       - name: PreRelease
         uses: ${{ env.ACTIONS_URL }}actions/gitea-release-action@v1
         with:
           files: |
             dist7z.7z
+          body_path: changelog.md
           prerelease: true
           md5sum: true
 
