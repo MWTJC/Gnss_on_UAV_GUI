@@ -29,6 +29,34 @@ def gps_to_datetime(gps_week, gps_seconds):
 
     return utc_time
 
+
+def convert_packets_to_sheet(packets):
+    """将PVAPacket列表转换为PVASheet"""
+
+    # 为每个数据包创建一行数据
+    data = []
+    for packet in packets:
+        # 计算时间戳 (GPS时间转UTC时间)
+        timestamp = gps_to_datetime(packet.gps_week, packet.gps_week_seconds).timestamp()
+
+        # 创建一行数据
+        row = {
+            "timestamp": timestamp,
+            "latitude": packet.latitude,
+            "longitude": packet.longitude,
+            "altitude": packet.altitude,
+            "velocity_north": packet.north_velocity,
+            "velocity_east": packet.east_velocity,
+            "velocity_up": packet.up_velocity,
+            "roll": packet.roll,
+            "pitch": packet.pitch,
+            "heading": packet.heading
+        }
+        data.append(row)
+
+    # 使用收集的数据直接创建PVASheet
+    return PVASheet(data)
+
 class PVAPacket:
     def __init__(self):
         # 帧头
@@ -90,12 +118,24 @@ class PVAPacket:
         )
 
 class PVASheet(pd.DataFrame):
-    def __init__(self):
-        super().__init__()
-        self.columns = ["timestamp",
-                        "latitude", "longitude", "altitude",
-                        "velocity_north", "velocity_east", "velocity_up",
-                        "roll", "pitch", "heading"]
+    def __init__(self, data=None):
+        # 定义列名
+        columns = ["timestamp",
+                   "latitude", "longitude", "altitude",
+                   "velocity_north", "velocity_east", "velocity_up",
+                   "roll", "pitch", "heading"]
+
+        # 如果没有提供数据，创建一个空的DataFrame但带有正确的列
+        if data is None:
+            data = []
+
+        # 调用父类的__init__方法，传入数据和列名
+        super().__init__(data=data, columns=columns)
+
+    # 确保DataFrame的方法返回PVASheet类型
+    @property
+    def _constructor(self):
+        return PVASheet
 
 
 def find_packet_start(data, start_pos=0):

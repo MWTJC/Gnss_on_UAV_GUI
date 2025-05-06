@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget_test_runner">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_basic_info">
       <attribute name="title">
@@ -105,9 +105,16 @@ li.checked::marker { content: &quot;\2612&quot;; }
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_load_file">
+          <widget class="QCheckBox" name="checkBox_import_from_file">
            <property name="text">
-            <string>载入本地文件</string>
+            <string>外部导入</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_import_data">
+           <property name="text">
+            <string>导入数据</string>
            </property>
           </widget>
          </item>
@@ -124,7 +131,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </widget>
      <widget class="QWidget" name="tab_localfile">
       <attribute name="title">
-       <string>文件概况</string>
+       <string>数据概况</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>

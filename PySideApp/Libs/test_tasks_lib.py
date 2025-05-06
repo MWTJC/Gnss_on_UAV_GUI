@@ -58,8 +58,9 @@ class TestTask:
         self.type = task_type
         self.input_param_list = input_param_list
         self.step_list = step_list
-        self.org_dataframe: pd.DataFrame|PVASheet|None = None
-        self.org_data_bytearray: bytearray|None = None
+        self.org_dataframe: pd.DataFrame|PVASheet|None = None  # 存储解析后的csv
+        self.org_data_bytearray: bytearray|None = None  # 存储原始hex
+        self.result_dataframe: pd.DataFrame|None = None  # 存储最终计算后的csv
         self.note = note
         self.current_step = 0
 

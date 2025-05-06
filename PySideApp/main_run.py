@@ -33,7 +33,7 @@ MAP_HTML_DIR = str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/Libs/vite
 sys.path.insert(0, str(Path(f"{os.path.abspath(os.path.dirname(__file__))}/pyui")))
 logger.info(sys.path)
 
-from PySideApp.Libs.read_pva_file import PVAPacket, gps_to_datetime
+from PySideApp.Libs.read_pva_file import PVAPacket, gps_to_datetime, convert_packets_to_sheet
 from PySideApp.Libs.map_webchannel import WebHandler
 from PySideApp.Libs.nmea_decode import parse_and_convert_GP
 from PySideApp.Libs.test_runner import TestRunner
@@ -213,6 +213,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
         pva_list, bytearray_raw = self.serial_dialog.get_storage()
         if bytearray_raw:
             result.org_data_bytearray = bytearray_raw
+            pva_sheet = convert_packets_to_sheet(pva_list)
+            result.org_dataframe = pva_sheet
         self.task_history_list.append(result)
         self.refresh_fill_table_data()
 
@@ -394,7 +396,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
         # 抽出数据
         data = []
         for history in self.task_history_list:
-            calculate_status = '可计算' if history.org_dataframe else '未计算'
+            calculate_status = '可计算' if history.org_dataframe is not None else '未计算'
             single_raw = [
                 history.id,
                 f"{history.type}：{history.name}",
@@ -415,7 +417,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
 
             # 创建最后一列的按钮容器
             widget = FlowWidget()
-
+            # 绑定每条history功能
             # 删除按钮
             delete_btn = QToolButton()
             delete_btn.setText("删除")
@@ -424,6 +426,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
                 QIcon(QIcon.fromTheme(u"user-trash"))
             )
             delete_btn.clicked.connect(lambda checked, r=row: self.delete_row(r))
+            widget.addWidget(delete_btn)  # 添加到布局
 
             # 详情按钮
             detail_btn = QToolButton()
@@ -433,17 +436,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
                 QIcon(QIcon.fromTheme(u"dialog-information"))
             )
             detail_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
+            widget.addWidget(detail_btn)  # 添加到布局
 
-            # 详情按钮
-            export_btn = QToolButton()
-            export_btn.setText("导出数据")
-            export_btn.setToolTip("导出HEX数据")
-            export_btn.setIcon(
+            # 导出HEX按钮
+            export_hex_btn = QToolButton()
+            export_hex_btn.setText("导出在线数据")
+            export_hex_btn.setToolTip("导出在线记录的HEX数据")
+            export_hex_btn.setIcon(
                 QIcon(QIcon.fromTheme(u"document-save-as"))
             )
-            export_btn.clicked.connect(lambda checked, r=row: self.export_single_raw(r))
+            export_hex_btn.clicked.connect(lambda checked, r=row: self.export_single_raw(r))
             if not self.task_history_list[row].org_data_bytearray:  # 若不包含有效数据
-                export_btn.setDisabled(True)
+                export_hex_btn.setDisabled(True)
+            widget.addWidget(export_hex_btn)  # 添加到布局
+
+            # 导出已解析HEX的csv
+            export_online_csv_btn = QToolButton()
+            export_online_csv_btn.setText("导出在线数据csv")
+            export_online_csv_btn.setToolTip("导出在线记录的csv数据")
+            export_online_csv_btn.setIcon(
+                QIcon(QIcon.fromTheme(u"document-save-as"))
+            )
+            export_online_csv_btn.clicked.connect(lambda checked, r=row: self.export_single_raw_csv(r))
+            if self.task_history_list[row].org_dataframe is None:  # 若不包含有效数据
+                export_online_csv_btn.setDisabled(True)
+            widget.addWidget(export_online_csv_btn)  # 添加到布局
 
             # # 计算按钮
             # run_caculate_btn = QToolButton()
@@ -453,11 +470,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             # )
             # run_caculate_btn.clicked.connect(lambda checked, r=row: self.show_detail(r))
 
-            # 将按钮添加到布局中
-            widget.addWidget(detail_btn)
-            # widget.addWidget(run_caculate_btn)
-            widget.addWidget(delete_btn)
-            widget.addWidget(export_btn)
 
             # 将按钮容器设置到表格中
             self.tableWidget.setCellWidget(row, 5, widget)
@@ -479,8 +491,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
         self.test_runner.set_test_info(history_task=task)
         self.test_runner.show()
 
+    def export_single_raw_csv(self, row):
+        logger.info(f"导出第 {row + 1} 行的在线csv数据")
+        task: TestTask = self.task_history_list[row]
+        path, ext = QFileDialog.getSaveFileName(
+            self, "导出在线csv数据", "",
+            "csv(*.csv)"
+        )
+        if not path:  # 判断路径非空
+            logger.warning("取消导出...")
+            return
+        frame: pd.DataFrame = task.org_dataframe
+        try:
+            frame.to_csv(path, index=False)  # 去除自带的索引
+            QMessageBox.information(self, "信息", f"已导出：{path}")
+        except PermissionError:
+            QMessageBox.warning(self, "错误", f"未导出：{path}\n文件被占用！")
+
+
     def export_single_raw(self, row):
-        logger.info(f"导出第 {row + 1} 行的数据")
+        logger.info(f"导出第 {row + 1} 行的HEX数据")
         task: TestTask = self.task_history_list[row]
         path, ext = QFileDialog.getSaveFileName(
             self, "导出hex数据", "",

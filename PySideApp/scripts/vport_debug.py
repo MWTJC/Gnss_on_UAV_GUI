@@ -9,7 +9,7 @@ async def send_hex_data():
                                                stopbits=1)
 
     # 读取本地hex文件
-    with open('../proj_file/SAVE2025_4_11_9-43-18.DAT', 'rb') as f:
+    with open('../proj_file/20250426-1.hex', 'rb') as f:
         hex_data = f.read()
 
     chunk_size = 158  # 每次发送的字节数

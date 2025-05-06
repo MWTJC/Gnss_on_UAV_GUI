@@ -31,7 +31,14 @@ class TestRunner(Ui_Dialog, QDialog):
         self.pushButton_prev_step.clicked.connect(self.test_prev_step)
         self.pushButton_redo_step.clicked.connect(self.test_redo_step)
         self.pushButton_finish.clicked.connect(self.test_finished)
-        self.pushButton_load_file.clicked.connect(self.read_local_PVA_file)
+        self.pushButton_import_data.clicked.connect(self.import_data)
+        self.pushButton_calcu_file.clicked.connect(self.PVA_calculate)  # 计算触发
+
+    def import_data(self):
+        if self.checkBox_import_from_file.isChecked():
+            self.read_local_PVA_file()
+        else:
+            pass
 
     def read_local_PVA_file(self):
         fname, ftype = QFileDialog.getOpenFileName(
@@ -150,6 +157,9 @@ class TestRunner(Ui_Dialog, QDialog):
         self.lineEdit_uuid.clear()
         self.lineEdit_calculate_item.clear()
         self.textEdit_mark.clear()
+        self.pushButton_start_test.setEnabled(True)
+        self.pushButton_import_data.setDisabled(True)
+        self.checkBox_import_from_file.setDisabled(True)
         # self.pushButton_start_test.setText('开始测试')
         self.pushButton_next_step.setEnabled(True)
         self.pushButton_finish.setDisabled(True)
@@ -172,8 +182,11 @@ class TestRunner(Ui_Dialog, QDialog):
         self.reset_ui()
         if not uuid:  # 如果是历史记录浏览
             self.pushButton_start_test.setDisabled(True)
-            self.pushButton_load_file.setEnabled(True)
-            self.pushButton_calcu_file.clicked.connect(self.PVA_calculate)  # 计算触发
+            self.pushButton_import_data.setEnabled(True)
+            self.checkBox_import_from_file.setEnabled(True)
+            if history_task.org_dataframe is None:  # 如果历史数据中不包含在线数据，强制规定必须从外部导入数据
+                self.checkBox_import_from_file.setChecked(True)
+                self.checkBox_import_from_file.setDisabled(True)
             uuid = history_task.id
         self.lineEdit_uuid.setText(str(uuid))
         self.lineEdit_uuid.setDisabled(True)
