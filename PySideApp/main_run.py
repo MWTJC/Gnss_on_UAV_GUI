@@ -419,6 +419,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             # 删除按钮
             delete_btn = QToolButton()
             delete_btn.setText("删除")
+            delete_btn.setToolTip("删除")
             delete_btn.setIcon(
                 QIcon(QIcon.fromTheme(u"user-trash"))
             )
@@ -427,6 +428,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             # 详情按钮
             detail_btn = QToolButton()
             detail_btn.setText("详情")
+            detail_btn.setToolTip("查看详情并计算")
             detail_btn.setIcon(
                 QIcon(QIcon.fromTheme(u"dialog-information"))
             )
@@ -435,6 +437,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # 手搓函数，实现具体功�
             # 详情按钮
             export_btn = QToolButton()
             export_btn.setText("导出数据")
+            export_btn.setToolTip("导出HEX数据")
             export_btn.setIcon(
                 QIcon(QIcon.fromTheme(u"document-save-as"))
             )
